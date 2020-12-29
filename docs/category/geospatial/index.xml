@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Geospatial | Alessandro Puccetti</title>
+    <link>https://alepuccetti.github.io/category/geospatial/</link>
+      <atom:link href="https://alepuccetti.github.io/category/geospatial/index.xml" rel="self" type="application/rss+xml" />
+    <description>Geospatial</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Thu, 30 Jan 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Geospatial</title>
+      <link>https://alepuccetti.github.io/category/geospatial/</link>
+    </image>
+    
+    <item>
+      <title>BigQuery Geography Clustering</title>
+      <link>https://alepuccetti.github.io/post/bigquery-geography-clustering/</link>
+      <pubDate>Thu, 30 Jan 2020 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-geography-clustering/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-world-map&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./world-map-colored-countries.png&#34; data-caption=&#34;World Map&#34;&gt;
+
+
+  &lt;img src=&#34;./world-map-colored-countries.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    World Map
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;The BigQuery team rolled out support for &lt;a href=&#34;https://cloud.google.com/bigquery/docs/gis-data&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;geography type&lt;/a&gt; a while ago and
+they have never stopped improving performances and &lt;a href=&#34;https://cloud.google.com/bigquery/docs/reference/standard-sql/geography_functions&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Geographic Information System functions&lt;/a&gt; (GIS).
+This allows users to run &lt;em&gt;complex geo-spatial analytics&lt;/em&gt; directly in BigQuery harnessing all its power, simplicity, and reliability.&lt;/p&gt;
+&lt;p&gt;Hold on your keyboard (or your screen if you are reading this on a mobile device).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Now you can cluster tables using a geography column&lt;/strong&gt;. Say what!!!!&lt;/p&gt;
+&lt;p&gt;This is game changing for users working heavily with geodata.
+By clustering your table on a geography column, BigQuery can reduce the amount of data that needs to read to serve the query.
+This makes queries cheaper and run faster when filtering on clustering column.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s see the benefits of clustering table using geography column with an example.
+We will use one of the great public datasets curated by &lt;a href=&#34;https://twitter.com/felipehoffa&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Felipe Hoffa&lt;/a&gt;.
+We will use the &lt;em&gt;weather_gsod&lt;/em&gt; specifically the two tables &lt;em&gt;all&lt;/em&gt; and &lt;em&gt;all_geoclustered&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s say that we want the all-time minimum and maximum temperature within the Greater London area for each station.
+Our query will look like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  name,
+  min(temp) as min_temp,
+  max(temp) as max_temp
+from `fh-bigquery.weather_gsod.all`
+where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
+group by 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Results:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-csv&#34;&gt;name                min_temp  max_temp
+ST JAMES PARK       26.3      83.2
+KENLEY AIRFIELD     18.0      82.8
+HEATHROW            18.6      83.4
+CITY                22.3      92.2
+BLACKWALL           37.0      62.2
+NORTHOLT            18.4      84.1
+BIGGIN HILL         15.5      90.3
+PURLEY OAKS         23.0      81.7
+LEAVESDEN           22.3      89.1
+LONDON WEA CENTER   20.0      85.2
+KEW-IN-LONDON       23.3      82.4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This query reads &lt;strong&gt;9.02GB&lt;/strong&gt; of data.
+Now let&amp;rsquo;s see how the same query perform on the clustered table:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  name,
+  min(temp) as min_temp,
+  max(temp) as max_temp
+from `fh-bigquery.weather_gsod.all_geoclusterd`
+where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
+group by 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The result is obviously the same but, this time, BigQuery reads just &lt;strong&gt;98.97MB&lt;/strong&gt; of the data!!!
+So switching to the geo clustered table made this query almost &lt;strong&gt;100 times&lt;/strong&gt; cheaper.
+Do you want to try other locations and test the differences yourself? You can use Huq Industries &lt;a href=&#34;https://gismap.huq.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GisMap tool&lt;/a&gt; to quickly draw and export polygons in various formats.&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-huq-gismaphttpgismaphuqio&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
+
+
+  &lt;img src=&#34;./huq_gismap_london_m25.jpeg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    &lt;a href=&#34;http://gismap.huq.io/&#34;&gt;Huq GisMap&lt;/a&gt;
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+  </channel>
+</rss>

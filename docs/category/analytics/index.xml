@@ -1,0 +1,179 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Analytics | Alessandro Puccetti</title>
+    <link>https://alepuccetti.github.io/category/analytics/</link>
+      <atom:link href="https://alepuccetti.github.io/category/analytics/index.xml" rel="self" type="application/rss+xml" />
+    <description>Analytics</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Sun, 10 May 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Analytics</title>
+      <link>https://alepuccetti.github.io/category/analytics/</link>
+    </image>
+    
+    <item>
+      <title>Serverless S3 Access Logs Analytics using BigQuery</title>
+      <link>https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/</link>
+      <pubDate>Sun, 10 May 2020 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-multi-cloud-data-analytics&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./man_binoculars.jpg&#34; data-caption=&#34;Multi-cloud Data Analytics&#34;&gt;
+
+
+  &lt;img src=&#34;./man_binoculars.jpg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Multi-cloud Data Analytics
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Do you use BigQuery? Are you interested in knowing how to integrate data from different cloud providers into BigQuery? In this blogpost, we will implement a &lt;strong&gt;serverless&lt;/strong&gt; and &lt;strong&gt;fully managed&lt;/strong&gt; system to make available S3 access logs into BigQuery to easily integrate them with other data sources and reporting systems. To achieve this we will see how to set up AWS S3 access logs delivery and configure Google &lt;a href=&#34;https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Data Transfer Service&lt;/a&gt; in order to schedule fully managed S3 to Cloud Storage transfers.We will also use &lt;a href=&#34;https://cloud.google.com/bigquery/external-table-definition&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;BigQuery external table&lt;/a&gt; to read data directly from Google Cloud Storage to access always to the most recent data without keeping reloading data into BigQuery. Finally, we will leverage &lt;a href=&#34;https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions#temporary-udf-syntax&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;persistent UDFs&lt;/a&gt; to parse the logs into tabular format on the fly.&lt;/p&gt;
+&lt;h2 id=&#34;set-up-s3-access-logging&#34;&gt;Set up S3 access logging&lt;/h2&gt;
+&lt;p&gt;AWS allows you to export &lt;a href=&#34;https://docs.aws.amazon.com/AmazonS3/latest/dev/ServerLogs.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;S3 access logs&lt;/a&gt;, which can be used to monitor user access and build business metrics. Although, you can export logs for a specific bucket into itself, this might cause extra logs to get generated. In our scenario we use a different bucket to collect and store the access logs of many other buckets. Also, S3 access logs can be exported only to a bucket in the same region for the monitored one. So we will need to create a different bucket for each region where we have buckets that we want to monitor. In this scenario, we will work in the &amp;ldquo;eu-west-1&amp;rdquo; region. Let’s create a bucket to collect and store the access logs.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws s3api create-bucket --bucket MY_BUCKET_EU-WEST-1 --region eu-west-1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we need to set up S3 access logs delivery. First we grant the AWS LogDelivery group the relevant permissions to our destination bucket:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws s3api put-bucket-acl --bucket MY_BUCKET_EU-WEST-1 --grand-write URI=http://acs.amazonaws.com/groups/s3/LogDelivery --grant-read-acp URI=http://acs.amazonaws.com/groups/s3/LogDelivery
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then we define the logging configuration locally in a JSON file:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;LoggingEnabled&amp;quot;: {
+    &amp;quot;TargetBucket&amp;quot;: &amp;quot;MY_BUCKET_EU-WEST-1&amp;quot;,
+    &amp;quot;TargetPrefix&amp;quot;: &amp;quot;BUCKET_TO_LOG/&amp;quot;,
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;TargetBucket&lt;/code&gt; is the bucket where the logs will be delivered. You can provide a prefix for the logs using &lt;code&gt;TargetPrefix&lt;/code&gt; (optional), we use it to separate the logs of different buckets but you could use a different logic. Now we need to enable logging:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws s3api put-bucket-logging --bucket BUCKET_TO_LOG --bucket-logging-status file://logging.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It’s worthy to remember that logs are delivered on a &lt;a href=&#34;https://docs.aws.amazon.com/AmazonS3/latest/dev/ServerLogs.html#LogDeliveryBestEffort&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;best effort basis&lt;/a&gt;, usually most log records are delivered within a few hours of the time they are recorded, but can be more frequently.&lt;/p&gt;
+&lt;h2 id=&#34;transfer-logs-to-google-cloud-platform&#34;&gt;Transfer logs to Google cloud Platform&lt;/h2&gt;
+&lt;p&gt;In our scenario, we will transfer the data first into Cloud Storage using the &lt;a href=&#34;https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Data Transfer&lt;/a&gt; service and then using &lt;a href=&#34;https://cloud.google.com/bigquery/external-table-definition&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;BigQuery external table&lt;/a&gt; to run queries on them. Another possible solution would be to use &lt;a href=&#34;https://cloud.google.com/bigquery-transfer/docs/s3-transfer&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;S3 to BigQuery&lt;/a&gt; data transfer service to directly transfer the data into BigQuery.
+The Data Transfer service is fully managed, so you just need to configure it and you won’t need to provision and monitor any infrastructure. Transfers are scheduled to run every 24 hours, if you need a different interval you will have to implement the data transfer yourself instead of using this service. Before setting up the transfer we need a destination bucket on Cloud Storage. Let’s create a multi-regional bucket in Europe.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;gsutil mb -l EU gs://MY_AWS_S3_ACCESS_LOGS_MIRROR/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To set up the transfer service, log into your cloud console to find &lt;em&gt;Data Transfer&lt;/em&gt; under the &lt;em&gt;Storage&lt;/em&gt; section. Now click on &amp;ldquo;Create a transfer job&amp;rdquo; and follow the steps below:
+As a source we select &amp;ldquo;Amazon S3 bucket and include the bucket name we want to read from, in our example &amp;ldquo;MY-S3-ACCESS-LOGS-EU-WEST-1&amp;rdquo;. We need to provide AWS authentication Access key ID and Secret access key that have the permission to read the bucket.
+As the destination, we put the bucket we just created MY_AWS_S3_ACCESS_LOGS_MIRROR and leave all the other options un-ticked.
+We select to run daily at a specific time.
+Click on Create.&lt;/p&gt;
+&lt;p&gt;For more detailed information refer to the &lt;a href=&#34;https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;official documentation&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We still need to be able to access the data in BigQuery to do our analytics and build reporting dashboards with Data Studio. Unfortunately, AWS S3 log entries are not in JSON or CSV-like format but they use their &lt;a href=&#34;https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;own&lt;/a&gt;. For this reason, BigQuery cannot automatically load it into a table with the desired schema. To have the logs parsed as we desire we will use a persistent UDF but first we need to make the log entries &amp;ldquo;available&amp;rdquo; to BigQuery. To do so, we define an external table that reads data from our mirror bucket in Cloud Storage and we have to configure it as the files use newline as field separator. As a result, we want a table where each row contains an entire log entry, we choose the newline character as field separator because we do not expect to have any of them in our log entries. This will result in a table with a single column.
+To create our source table we can use the cloud console:
+Select the dataset you want to create your table in and click create table.
+In the table creation menu, select as source &amp;ldquo;Google Cloud Storage&amp;rdquo;, CSV as format, and add the prefix of the data that you want to be the sources of the table (remember that you can use wildcard to say to BigQuery to select all the files within the prefix).
+Choose your table name (in this example we will use &amp;ldquo;s3_raw_logs_external&amp;rdquo;) and because we do not want to actually load the data, we need to select &amp;ldquo;External table&amp;rdquo; in &amp;ldquo;Table type&amp;rdquo;.
+In the schema section add a single column called &amp;ldquo;text&amp;rdquo; of type STRING.
+Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to be &amp;ldquo;Custom&amp;rdquo; and insert s character that should never be present (e.g. &amp;ldquo;§&amp;quot;). You can leave the other options with their default values and click &amp;ldquo;create&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.&lt;/p&gt;
+&lt;h2 id=&#34;transform-raw-logs-into-tabular-format&#34;&gt;Transform raw logs into tabular format&lt;/h2&gt;
+&lt;p&gt;As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &amp;ldquo;\&amp;rdquo; instead of &amp;ldquo;&amp;quot; because we need to escape when defining the function.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;CREATE OR REPLACE FUNCTION `PROJECT_ID.DATASET_ID.s3_log_parser`(text STRING)
+RETURNS STRUCT&amp;lt;bucket_owner STRING, bucket STRING, timestamp STRING, remote_ip STRING, requester STRING, request_id STRING, operation STRING, key STRING, request_uri STRING, http_status INT64, error_code STRING, bytes_sent INT64, object_size INT64, total_time INT64, turn_around_time INT64, referrer STRING, user_agent STRING, version_id STRING, host_id STRING, _error_message STRING, _s3_log_line STRING&amp;gt;
+LANGUAGE js
+AS &amp;quot;&amp;quot;&amp;quot;
+/*
+This regex follows the logformat specs at https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html
+Note that we need to use &#39;\&#39; instead of &#39;&#39; because BigQuery escaping rules and we also need to escape ‘\’ using ‘\\’. The function will be saved with a single ‘\’ but will need to be saved using ‘\\’ instead.
+*/
+var ACCESS_LOG_REGEXP = /(?:([a-z0-9]+)|-) (?:-|([\\w\\.\\-_]+)) (?:(\\[[^\\]]+\\])|-) (?:([\\d\\.]+)|-) (?:-|([\\w:\\/\\-_]+)) (?:([\\w.-_]+)|-) (?:([\\w\\.]+)|-) (?:-|([\\w0-9\\.\\-_\\/%\\*\\?\\[\\]]+)) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:(\\d+)|-) (?:([\\w]+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:([\\w]+)|-) (?:([\\w\\+\\/=]+)|-) (?:([\\w]+)|-) (?:([\\w-]+)|-) (?:([\\w-]+)|-) (?:([\\w-\\.]+)|-) (?:([\\w\\.]+)|-)/i;
+this._s3_log_line = text;
+var matches = null;
+// Catch error during regex
+try {
+  matches = text.match(ACCESS_LOG_REGEXP);
+} catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  return this;
+}
+
+// Parse first tier fields, we want this field to be all present or get a failure with an error message.
+try {
+  this.bucket_owner = matches[1];
+  this.bucket = matches[2];
+  this.timestamp = matches[3];
+  this.remote_ip = matches[4];
+  this.requester = matches[5];
+  this.request_id = matches[6];
+  this.operation = matches[7];
+  this.key = matches[8];
+  this.request_uri = matches[9];
+  this.http_status = matches[10];
+  this.error_code = matches[11];
+  this.bytes_sent = matches[12];
+  this.object_size = matches[13];
+  this.total_time = matches[14];
+  this.turn_around_time = matches[15];
+} catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  this._parse_result = JSON.stringify(matches);
+  return this;
+}
+
+// Parse additional fields
+try {
+  this.referrer = matches[16];
+  this.user_agent = matches[17];
+  this.version_id = matches[18];
+  this.host_id = matches[19];
+  } catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  return this;
+}
+return this;
+&amp;quot;&amp;quot;&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here you can find the &lt;a href=&#34;https://gist.github.com/alepuccetti/544863656931199027c894b02497c2eb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GitHub gist&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You can copy and paste the code above into the BigQuery UI to create the &lt;strong&gt;s3_log_parser&lt;/strong&gt; as a persistent UDF, just replace &lt;code&gt;PROJECT_ID&lt;/code&gt; and &lt;code&gt;DATASET_ID&lt;/code&gt; with valid values for your environment.&lt;/p&gt;
+&lt;p&gt;Now we have easy access to the data and the logic to transform it into tabular format, the following query will parse all the logs entry into the column defined in the UDF.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  s3_log.* except(timestamp, _error_message, _s3_log_line),
+  parse_timestamp(&amp;quot;[%d/%b/%Y:%H:%M:%S %z]&amp;quot;, s3_log.timestamp) as timestamp
+from (
+  select
+    `PROJECT_ID.DATASET_ID.s3_log_parser`(text) as s3_log
+  from `PROJECT_ID.DATASET_ID.s3_raw_logs_external`
+)
+;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s copy and paste this query into the BigQuery UI and run it. If you have already data into the Cloud Storage bucket you will see the logs parsed out. Now click on &amp;ldquo;Save view&amp;rdquo;, choose a destination dataset and a name for the view (e.g. s3_logs_parsed). In this way, we can use the view as a source for our analytics reporting dashboards instead of always writing the query itself. Now try the following query, it should show the same results of the previous one.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;Select
+*
+from PROJECT_ID.DATASET_ID.s3_logs_parsed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you have a serverless, fully-managed system to analyse your AWS S3 access logs into BigQuery using SQL and play with Google &lt;a href=&#34;https://datastudio.google.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Datastudio&lt;/a&gt; to build and share reporting dashboards.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

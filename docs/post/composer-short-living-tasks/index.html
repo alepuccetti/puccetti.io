@@ -1,0 +1,1496 @@
+<!DOCTYPE html><html lang="en-us" >
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  
+  
+  <meta name="generator" content="Wowchemy 5.0.0-beta.1 for Hugo">
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Improving efficient in executing millions of short living tasks.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/composer-short-living-tasks/">
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#F10D06">
+  
+
+  
+  
+
+  
+  
+  
+  
+    
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha256-FMvZuGapsJLjouA6k7Eo2lusoAX9i0ShlWFG6qt7SLc=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" integrity="sha512-1xoFisiGdy9nvho8EgXuXvnpR5GAMSjFwp40gSRE3NwdUdIMIKuPa7bqoUhLD0O/5tPNhteAsE5XyyMi5reQVA==" crossorigin="anonymous">
+    
+
+    
+
+    
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.2.2/lazysizes.min.js" integrity="sha512-TmDwFLhg3UA4ZG0Eb4MIyT1O1Mb+Oww5kFG0uHqXsdbyZz9DcvYQhKpGgNkamAI6h2lGGZq2X8ftOJvF/XjTUg==" crossorigin="anonymous" async></script>
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+        
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+
+  
+
+  
+  
+  
+    
+      
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700%7CRoboto:400,400italic,700%7CRoboto+Mono&display=swap">
+    
+  
+
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/wowchemy.min.27ed1fd6838bf032863cbd580ffa8cf3.css">
+
+  
+
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WKV4BNXC61"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+
+  function gtag() {
+      dataLayer.push(arguments);
+  }
+
+  function trackOutboundLink(url, target) {
+    gtag('event', 'click', {
+         'event_category': 'outbound',
+         'event_label': url,
+         'transport_type': 'beacon',
+         'event_callback': function () {
+           if (target !== '_blank') {
+             document.location = url;
+           }
+         }
+    });
+    console.debug("Outbound link clicked: " + url);
+  }
+
+  function onClickCallback(event) {
+    if ((event.target.tagName !== 'A') || (event.target.host === window.location.host)) {
+      return;
+    }
+    trackOutboundLink(event.target, event.target.getAttribute('target'));  
+  }
+
+  gtag('js', new Date());
+  gtag('config', 'G-WKV4BNXC61', {});
+
+  
+  document.addEventListener('click', onClickCallback, false);
+</script>
+
+
+  
+
+  
+
+
+  
+  
+
+  
+
+  <link rel="manifest" href="/index.webmanifest">
+  <link rel="icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_32x32_fill_lanczos_center_2.png">
+  <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png">
+
+  <link rel="canonical" href="https://alepuccetti.github.io/post/composer-short-living-tasks/">
+
+  
+  
+  
+  
+  
+  
+  
+    
+    
+  
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="twitter:site" content="@alepuccetti">
+  <meta property="twitter:creator" content="@alepuccetti">
+  
+  <meta property="og:site_name" content="Alessandro Puccetti">
+  <meta property="og:url" content="https://alepuccetti.github.io/post/composer-short-living-tasks/">
+  <meta property="og:title" content="Google Cloud Composer: Overcoming The Short-living Tasks Problem | Alessandro Puccetti">
+  <meta property="og:description" content="Improving efficient in executing millions of short living tasks."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
+  <meta property="twitter:image" content="https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
+  
+    
+      <meta property="article:published_time" content="2019-07-15T00:00:00&#43;00:00">
+    
+    <meta property="article:modified_time" content="2019-07-15T00:00:00&#43;00:00">
+  
+
+  
+
+
+    
+
+
+
+
+
+
+  
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://alepuccetti.github.io/post/composer-short-living-tasks/"
+  },
+  "headline": "Google Cloud Composer: Overcoming The Short-living Tasks Problem",
+  
+  "datePublished": "2019-07-15T00:00:00Z",
+  "dateModified": "2019-07-15T00:00:00Z",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Alessandro Puccetti",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png"
+    }
+  },
+  "description": "Improving efficient in executing millions of short living tasks."
+}
+</script>
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+
+  <title>Google Cloud Composer: Overcoming The Short-living Tasks Problem | Alessandro Puccetti</title>
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class="page-wrapper  ">
+
+  
+  
+  
+  
+  
+  <script src="/js/wowchemy-init.js"></script>
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control">
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  <div class="page-header">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="d-none d-lg-inline-flex">
+      <a class="navbar-brand" href="/">Alessandro Puccetti</a>
+    </div>
+    
+
+    
+    <button type="button" class="navbar-toggler" data-toggle="collapse"
+            data-target="#navbar-content" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+    <span><i class="fas fa-bars"></i></span>
+    </button>
+    
+
+    
+    <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+      <a class="navbar-brand" href="/">Alessandro Puccetti</a>
+    </div>
+    
+
+    
+    
+    <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+      
+      <ul class="navbar-nav d-md-inline-flex">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/about/"><span>About</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/media/alessandro-puccetti-resume.pdf"><span>Resume</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+      </ul>
+    </div>
+
+    <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+
+      
+      
+        
+      
+
+      
+      
+      <li class="nav-item">
+        <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+      </li>
+      
+
+      
+      
+      <li class="nav-item dropdown theme-dropdown">
+        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
+          <i class="fas fa-moon" aria-hidden="true"></i>
+        </a>
+        <div class="dropdown-menu">
+          <a href="#" class="dropdown-item js-set-theme-light">
+            <span>Light</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-dark">
+            <span>Dark</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-auto">
+            <span>Automatic</span>
+          </a>
+        </div>
+      </li>
+      
+
+      
+
+    </ul>
+
+  </div>
+</nav>
+
+
+  </div>
+
+  <div class="page-body">
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>Google Cloud Composer: Overcoming The Short-living Tasks Problem</h1>
+
+  
+  <p class="page-subtitle">Improving efficient in executing millions of short living tasks.</p>
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+  <span >
+      </span>
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    Jul 15, 2019
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    5 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <span class="article-categories">
+    <i class="fas fa-folder mr-1"></i><a href="/category/data-engineering/">Data Engineering</a></span>
+  
+
+</div>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-google-cloud-composer">
+
+
+  <a data-fancybox="" href="./gcp_airflow_composer.png" data-caption="Google Cloud Composer">
+
+
+  <img src="./gcp_airflow_composer.png" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption>
+    Google Cloud Composer
+  </figcaption>
+
+
+</figure>
+
+<h2 id="introduction">Introduction</h2>
+<p><a href="https://cloud.google.com/composer" target="_blank" rel="noopener">Google Cloud Composer</a> is Google Cloud Platform product that helps you manage complex workflows with ease.</p>
+<p>It is built on top of <a href="https://airflow.apache.org/" target="_blank" rel="noopener">Apache Airflow</a> and is a fully managed service that leverages other GCP products
+like Cloud SQL, GCS, Kubernetes Engine, Stackdriver, Cloud SQL and Identity Aware Proxies.</p>
+<p>You don&rsquo;t have to worry about provisioning and dev-ops, so you can focus on your core business logic and let Google take care of the rest.
+With Airflow it&rsquo;s easy to create, schedule, and monitor pipelines that span both cloud and on-premises data centres.
+With a vast selection of <em>&ldquo;Operators&rdquo;</em>, you can define pipelines natively in Python with just a few lines of code,
+and connect to several cloud providers or on-premises instances.
+If you don&rsquo;t find the operator that fits your needs, it&rsquo;s incredibly easy to create your own and import it.
+If you want to learn more about Apache Airflow, refer to the official <a href="https://airflow.apache.org/" target="_blank" rel="noopener">docs</a>.</p>
+<h2 id="running-short-living-tasks">Running short-living tasks</h2>
+<p>Airflow is a great tool, but as is often the case with high-level tools,
+it can introduce overheads when compared to lower-level implementations of the same operation.
+To get an idea of the overhead that Airflow could introduce,
+we can analyse the <a href="https://cloud.google.com/composer/docs/tutorials/health-check" target="_blank" rel="noopener">health-check example</a> and run it on a Cloud Composer instance.
+The health-check DAG consists of a single bash operator that executes a simple command ( <code>echo ENVIRONMENT_NAME</code>).
+The following screenshot shows 5 runs of this workflow and returns run-times of 3.6 and 5 seconds.
+As this scale linearly across multiple invocations, the lag becomes a real problem if - like us - you&rsquo;re running thousands of them.
+To validate this, let&rsquo;s also measure how much time the same command run for if executed directly from the command line.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-echo-task-information-from-airflow-ui">
+
+
+  <a data-fancybox="" href="./airflow_tasks_view.png" data-caption="echo task information from Airflow UI">
+
+
+  <img src="./airflow_tasks_view.png" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption>
+    echo task information from Airflow UI
+  </figcaption>
+
+
+</figure>
+
+<pre><code class="language-bash"># time echo my-awesome-string
+
+real    0m0.000s
+user    0m0.000s
+sys     0m0.000s
+</code></pre>
+<p>As expected <code>echo</code> is blazing fast - and even trying to measure its execution time with the standard implementation of <code>time</code> does not cut it.
+We could recompile the kernel with <code>CONFIG_HIGH_RES_TIMERS=y</code> - but who has time for that!
+So to find out, let&rsquo;s use <code>date</code> with nanosecond precision (keep in mind that in this way the measure will be slightly overestimated).</p>
+<pre><code># date +&quot;%9N&quot;; echo my-awesome-string ; date +&quot;%9N&quot;
+571368370
+my-awesome-string
+573152179
+</code></pre>
+<p>This output is the decimal part of the date-stamp expressed in nanoseconds, so to get the elapsed time the equation is:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-single-task-time">
+
+
+  <a data-fancybox="" href="./single_task_time.png" data-caption="Single Task Time">
+
+
+  <img src="./single_task_time.png" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption>
+    Single Task Time
+  </figcaption>
+
+
+</figure>
+
+<h2 id="a-more-realistic-yet-simple-pipeline">A more realistic, yet simple pipeline</h2>
+<p>Now that the results are in, it is pretty clear that the actual time needed to run the <code>echo</code> command is irrelevant
+compared with the duration time of the corresponding Airflow task.
+So in this case, we can say that Airflow introduces an overhead of about 4 seconds.</p>
+<p>Let&rsquo;s apply these findings to a more real-world example. Let&rsquo;s imagine we have a pipeline made of 4 tasks:</p>
+<ol>
+<li>Run a query on BigQuery using the BigQuery operator.</li>
+<li>Export the data to GCS.</li>
+<li>Compose the exported file into a single file.</li>
+<li>Copy the composed file to S3.</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-sample-pipeline">
+
+
+  <a data-fancybox="" href="./pipeline_diagram.png" data-caption="Sample Pipeline">
+
+
+  <img src="./pipeline_diagram.png" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption>
+    Sample Pipeline
+  </figcaption>
+
+
+</figure>
+
+<p>In our world, this pipeline runs daily for each country (of which we cover almost 250), which results in 1,000 tasks per daily run.
+It takes just a few minutes to execute this operation via a simple bash script because each operation runs for just a few seconds.
+Using Airflow however, this pipeline takes about an hour to complete.
+When running a backfill job over 3 years of data across 3 different instances of this pipeline,
+we end up with more than 3 millions tasks to execute, and having so many tasks to manage at the same time creates an avalanche effect.
+This overwhelms the system and causes problems in getting tasks to schedule, queue, and run.</p>
+<p>To achieve our aim while invoking fewer tasks, we accepted a reduction in the granularity of execution and parallelism
+but maintained the automation capabilities offered by Airflow.
+We were able to tune this developing an Airflow plugin called Chains, which can be found in the <a href="https://github.com/huq-industries/airflow-plugins" target="_blank" rel="noopener">airflow-plugins</a> repository.</p>
+<p>NB. If you have built a custom operator or plugins that you want to share, you can do that by submitting a PR to that repository.</p>
+<h1 id="the-chain-airflow-plugin">The Chain Airflow plugin</h1>
+<p>The Chain plugin offers 2 operators that you can use to chain together a set of operations:</p>
+<ul>
+<li><code>BigQueryChainOperator</code></li>
+<li><code>BigQueryToCloudStorageChainOperator</code></li>
+</ul>
+<p>These operators are based on the corresponding official ones ( <em>BigQueryOperator</em> and <em>BigQueryToCloudStorageOperator</em>) with just a few simple modifications.
+They can take lists of values instead of single values as parameters, and will then loop on the list to run all the operation in sequence.</p>
+<p>This solution trades parallelism and granularity in favour of reducing the number of tasks bundling together multiple operations into a single Airflow task.
+Using these operators in our example pipeline, we were able to bundle the countries
+into groups and adjust the trade-off between parallelism and the total number of Airflow tasks.
+In our case, by using Chains and partitioning our countries into 7 groups,
+we were able to reduce the number of Airflow tasks by a factor of 35.</p>
+<h1 id="conclusions">Conclusions</h1>
+<p>The results include better performances in both the single-day and full historical backfill use-cases.
+Single days run in less than 12 minutes vs.
+60 minutes <em>(a 5x improvement)</em>.
+Running the 3-year backfill for our 3 different types of pipeline finish in less than a day instead of an estimated 3 months <em>(90x improvement)</em>!
+This helps to confirm that the problem was indeed the Airflow per-task overhead.</p>
+<p>Of course, this is somewhat expected, as Airflow is not designed to be a real-time system and is really designed for managing larger and more complex pipelines.</p>
+
+    </div>
+
+    
+
+
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/automation/">Automation</a>
+  
+</div>
+
+
+
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/composer-short-living-tasks/&amp;text=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/composer-short-living-tasks/&amp;t=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem&amp;body=https://alepuccetti.github.io/post/composer-short-living-tasks/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/composer-short-living-tasks/&amp;title=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem%20https://alepuccetti.github.io/post/composer-short-living-tasks/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://alepuccetti.github.io/post/composer-short-living-tasks/&amp;title=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://alepuccetti.github.io/"><img class="avatar mr-3 avatar-circle" src="/authors/admin/avatar_huc410300e956b91907a41e009b4d53c45_95286_270x270_fill_q90_lanczos_center.jpg" alt=""></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://alepuccetti.github.io/"></a></h5>
+      <h6 class="card-subtitle">Head of Automation<br>Data Platform Engineer</h6>
+      <p class="card-text">My interests include data engineering at scale, geospatial analytics, machine learning, windsurf, and cooking.</p>
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://www.linkedin.com/in/alessandropuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-linkedin"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://medium.com/@alepuccetti/" target="_blank" rel="noopener">
+        <i class="fab fa-medium"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://stackoverflow.com/users/4018047/alessandro" target="_blank" rel="noopener">
+        <i class="fab fa-stack-overflow"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <div class="article-widget content-widget-hr">
+    <h3>Related</h3>
+    <ul>
+      
+      <li><a href="/post/serverless-s3-access-logs-analytics-with-bigquery/">Serverless S3 Access Logs Analytics using BigQuery</a></li>
+      
+      <li><a href="/post/bigquery-geography-clustering/">BigQuery Geography Clustering</a></li>
+      
+      <li><a href="/post/bigquery-partitioning-clustering/">BigQuery Partitioning &amp; Clustering</a></li>
+      
+      <li><a href="/post/bigquery-wildcards/">BigQuery Wildcards</a></li>
+      
+      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
+      
+    </ul>
+  </div>
+  
+
+
+
+
+
+  </div>
+</article>
+  </div>
+
+  <div class="page-footer">
+    
+    
+    <div class="container">
+      <footer class="site-footer">
+  
+
+  <p class="powered-by">
+    
+  </p>
+
+  
+  
+
+
+
+
+
+
+  <p class="powered-by">
+    
+    
+    
+    Published with
+    <a href="https://wowchemy.com/?utm_campaign=poweredby" target="_blank" rel="noopener">Wowchemy</a>  —
+    the free, <a href="https://github.com/wowchemy/wowchemy-hugo-modules" target="_blank" rel="noopener">
+    open source</a> website builder that empowers creators.
+    
+  </p>
+</footer>
+
+    </div>
+    
+  </div>
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+      
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/instant.page/5.1.0/instantpage.min.js" integrity="sha512-1+qUtKoh9XZW7j+6LhRMAyOrgSQKenQ4mluTR+cvxXjP1Z54RxZuzstR/H9kgPXQsVB8IW7DMDFUJpzLjvhGSQ==" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/python.min.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/sql.min.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
+        
+      
+
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" integrity="sha512-SeiQaaDh73yrb56sTW/RgVdi/mMqNeM2oBwubFHagc5BkixSpP1fvqF47mKzPGWYSSy4RwbBunrJBQ4Co8fRWA==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    <script>const code_highlighting = true;</script>
+    
+
+    
+    
+    
+    
+    
+    
+    <script>
+      const search_config = {"indexURI":"/index.json","minLength":1,"threshold":0.3};
+      const i18n = {"no_results":"No results found","placeholder":"Search...","results":"results found"};
+      const content_type = {
+        'post': "Posts",
+        'project': "Projects",
+        'publication' : "Publications",
+        'talk' : "Talks",
+        'slides' : "Slides"
+        };
+    </script>
+    
+
+    
+    
+
+    
+    
+    <script id="search-hit-fuse-template" type="text/x-template">
+      <div class="search-hit" id="summary-{{key}}">
+      <div class="search-hit-content">
+        <div class="search-hit-name">
+          <a href="{{relpermalink}}">{{title}}</a>
+          <div class="article-metadata search-hit-type">{{type}}</div>
+          <p class="search-hit-description">{{snippet}}</p>
+        </div>
+      </div>
+      </div>
+    </script>
+    
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" integrity="sha256-VzgmKYmhsGNNN4Ph1kMW+BjoYJM2jV5i4IlFoeZA9XI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+    
+
+    
+    
+
+    
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    
+    <script src="/js/wowchemy.min.abf79d5abd9391a904c9b122bfe98c04.js"></script>
+
+    
+
+
+
+
+
+
+</body>
+</html>

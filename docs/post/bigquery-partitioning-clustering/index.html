@@ -1,0 +1,1424 @@
+<!DOCTYPE html><html lang="en-us" >
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  
+  
+  <meta name="generator" content="Wowchemy 5.0.0-beta.1 for Hugo">
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Improving performance at a fraction of the cost.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/bigquery-partitioning-clustering/">
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#F10D06">
+  
+
+  
+  
+
+  
+  
+  
+  
+    
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha256-FMvZuGapsJLjouA6k7Eo2lusoAX9i0ShlWFG6qt7SLc=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" integrity="sha512-1xoFisiGdy9nvho8EgXuXvnpR5GAMSjFwp40gSRE3NwdUdIMIKuPa7bqoUhLD0O/5tPNhteAsE5XyyMi5reQVA==" crossorigin="anonymous">
+    
+
+    
+
+    
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.2.2/lazysizes.min.js" integrity="sha512-TmDwFLhg3UA4ZG0Eb4MIyT1O1Mb+Oww5kFG0uHqXsdbyZz9DcvYQhKpGgNkamAI6h2lGGZq2X8ftOJvF/XjTUg==" crossorigin="anonymous" async></script>
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+        
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+
+  
+
+  
+  
+  
+    
+      
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700%7CRoboto:400,400italic,700%7CRoboto+Mono&display=swap">
+    
+  
+
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/wowchemy.min.27ed1fd6838bf032863cbd580ffa8cf3.css">
+
+  
+
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WKV4BNXC61"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+
+  function gtag() {
+      dataLayer.push(arguments);
+  }
+
+  function trackOutboundLink(url, target) {
+    gtag('event', 'click', {
+         'event_category': 'outbound',
+         'event_label': url,
+         'transport_type': 'beacon',
+         'event_callback': function () {
+           if (target !== '_blank') {
+             document.location = url;
+           }
+         }
+    });
+    console.debug("Outbound link clicked: " + url);
+  }
+
+  function onClickCallback(event) {
+    if ((event.target.tagName !== 'A') || (event.target.host === window.location.host)) {
+      return;
+    }
+    trackOutboundLink(event.target, event.target.getAttribute('target'));  
+  }
+
+  gtag('js', new Date());
+  gtag('config', 'G-WKV4BNXC61', {});
+
+  
+  document.addEventListener('click', onClickCallback, false);
+</script>
+
+
+  
+
+  
+
+
+  
+  
+
+  
+
+  <link rel="manifest" href="/index.webmanifest">
+  <link rel="icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_32x32_fill_lanczos_center_2.png">
+  <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png">
+
+  <link rel="canonical" href="https://alepuccetti.github.io/post/bigquery-partitioning-clustering/">
+
+  
+  
+  
+  
+  
+  
+  
+    
+    
+  
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="twitter:site" content="@alepuccetti">
+  <meta property="twitter:creator" content="@alepuccetti">
+  
+  <meta property="og:site_name" content="Alessandro Puccetti">
+  <meta property="og:url" content="https://alepuccetti.github.io/post/bigquery-partitioning-clustering/">
+  <meta property="og:title" content="BigQuery Partitioning &amp; Clustering | Alessandro Puccetti">
+  <meta property="og:description" content="Improving performance at a fraction of the cost."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
+  <meta property="twitter:image" content="https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
+  
+    
+      <meta property="article:published_time" content="2020-01-21T00:00:00&#43;00:00">
+    
+    <meta property="article:modified_time" content="2020-01-21T00:00:00&#43;00:00">
+  
+
+  
+
+
+    
+
+
+
+
+
+
+  
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://alepuccetti.github.io/post/bigquery-partitioning-clustering/"
+  },
+  "headline": "BigQuery Partitioning \u0026 Clustering",
+  
+  "datePublished": "2020-01-21T00:00:00Z",
+  "dateModified": "2020-01-21T00:00:00Z",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Alessandro Puccetti",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png"
+    }
+  },
+  "description": "Improving performance at a fraction of the cost."
+}
+</script>
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+
+  <title>BigQuery Partitioning &amp; Clustering | Alessandro Puccetti</title>
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class="page-wrapper  ">
+
+  
+  
+  
+  
+  
+  <script src="/js/wowchemy-init.js"></script>
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control">
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  <div class="page-header">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="d-none d-lg-inline-flex">
+      <a class="navbar-brand" href="/">Alessandro Puccetti</a>
+    </div>
+    
+
+    
+    <button type="button" class="navbar-toggler" data-toggle="collapse"
+            data-target="#navbar-content" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+    <span><i class="fas fa-bars"></i></span>
+    </button>
+    
+
+    
+    <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+      <a class="navbar-brand" href="/">Alessandro Puccetti</a>
+    </div>
+    
+
+    
+    
+    <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+      
+      <ul class="navbar-nav d-md-inline-flex">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/about/"><span>About</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/media/alessandro-puccetti-resume.pdf"><span>Resume</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+      </ul>
+    </div>
+
+    <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+
+      
+      
+        
+      
+
+      
+      
+      <li class="nav-item">
+        <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+      </li>
+      
+
+      
+      
+      <li class="nav-item dropdown theme-dropdown">
+        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
+          <i class="fas fa-moon" aria-hidden="true"></i>
+        </a>
+        <div class="dropdown-menu">
+          <a href="#" class="dropdown-item js-set-theme-light">
+            <span>Light</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-dark">
+            <span>Dark</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-auto">
+            <span>Automatic</span>
+          </a>
+        </div>
+      </li>
+      
+
+      
+
+    </ul>
+
+  </div>
+</nav>
+
+
+  </div>
+
+  <div class="page-body">
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>BigQuery Partitioning &amp; Clustering</h1>
+
+  
+  <p class="page-subtitle">Improving performance at a fraction of the cost.</p>
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+  <span >
+      </span>
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    Jan 21, 2020
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    5 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <span class="article-categories">
+    <i class="fas fa-folder mr-1"></i><a href="/category/data-engineering/">Data Engineering</a></span>
+  
+
+</div>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-shipping-containers">
+
+
+  <a data-fancybox="" href="./shipping_containers.jpg" data-caption="Shipping Containers">
+
+
+  <img src="./shipping_containers.jpg" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption>
+    Shipping Containers
+  </figcaption>
+
+
+</figure>
+
+<p>In this blogpost, I will explain what partitioning and clustering features in BigQuery are and
+how to supercharge your query performance and reduce query costs.</p>
+<h1 id="partitioning">Partitioning</h1>
+<p>Partitioning a table can make your queries run faster while spending less.
+Until December 2019, BigQuery supported table partitioning only using <strong>date data type</strong>.
+Now, you can do it on integer ranges too.
+If you want to know more about partitioning your tables this way,
+check out this <a href="https://medium.com/google-cloud/partition-on-any-field-with-bigquery-840f8aa1aaab" target="_blank" rel="noopener">great blogpost</a> by Guillaume Blaquiere.</p>
+<p>Here, I will focus on date type partitioning.
+You can partition your data using 2 main strategies:
+on the one hand you can use a table column, and on the other, you can use the data time of ingestion.</p>
+<p>This approach is particularly useful when you have very large datasets that go back in time for many years.
+In fact, if you want to run analytics only for specific time periods, partitioning your table by time allows BigQuery
+to read and process only the rows of that particular time span.
+Thus, your queries will run faster and, because they are reading less data, they will also cost less.</p>
+<p>Creating a partitioned table is an easy task.
+At the time of table creation, you can specify which column is going to be used for partitioning,
+otherwise, you can set up the partitioning on <a href="https://cloud.google.com/bigquery/docs/creating-partitioned-tables" target="_blank" rel="noopener">ingestion time</a>.
+Since you can query this table in the same exact way of those that are not partitioned, you won&rsquo;t have to change a line of your existing queries.</p>
+<pre><code class="language-sql">select
+  day,
+  count(*)
+from full_history
+where sampling_date &gt;= &quot;2019–08–05&quot;
+and sampling_date &lt; &quot;2019–08–06&quot;
+group by 1
+</code></pre>
+<p>Assuming that &ldquo;<strong>sampling_date</strong>&rdquo; is the partitioning column,
+now BigQuery can use the specified values in the &ldquo;where clause&rdquo; to read only data that belong to the right partitions.</p>
+<h4 id="bonus-nugget">Bonus nugget</h4>
+<p>You can use <strong>partition decorators</strong> to update, delete, and overwrite entire single partitions as in:</p>
+<pre><code class="language-bash"># overwrite single partition loading from file
+bq load —-replace \
+  project_id:dataset_name.table_name$20190805 \
+  gs://my_input_bucket/data/from/20190805/* ./schema.json
+</code></pre>
+<p>And</p>
+<pre><code class="language-bash"># overwrite single partition from query results
+bq query —- replace --use_legacy_sql=false \
+  —-destination_table project_id:dataset.table$20190805 \
+  'select * from project_id:dataset.another_table'
+</code></pre>
+<p>In the cases above, both the loaded data and the query results have to belong to the referenced partition, otherwise the job will fail.</p>
+<h1 id="clustering">Clustering</h1>
+<p>Clustering is another way of organizing data which stores one next to the other all those rows that share similar values in the chosen clustering columns.
+This process increases the query efficiency and performances.
+Note that BigQuery supports this feature only on partitioned tables.</p>
+<p>BigQuery can leverage clustered tables to read only data relevant to the query, so it becomes faster and cheaper.</p>
+<p>At the table creation time, you can provide up to 4 clustering columns in a comma-separated list e.g. &ldquo;<strong>wiki</strong>&rdquo;, &ldquo;<strong>title</strong>&rdquo;.
+You should also keep in mind that their order is of paramount importance but we will see this in a moment.</p>
+<p>In this section we will use &ldquo;<em>wikipedia_v3</em>&rdquo; form <a href="https://twitter.com/felipehoffa" target="_blank" rel="noopener">Felipe Hoffa</a>&rsquo;s public dataset,
+which contains yearly tables of Wikipedia page views.
+These are partitioned by the &ldquo;<strong>datehour</strong>&rdquo; column and clustered on &ldquo;<strong>wiki</strong>&rdquo; and &ldquo;<strong>title</strong>&rdquo; columns.
+A single row may look like this:</p>
+<pre><code class="language-csv">datehour,                    language,     title,   views
+2019–08–10 03:00:00 UTC,     en,           Pizza,   106
+...
+</code></pre>
+<p>The following query counts, broken-down per year, all the page views for the Italian wiki from 2015–01–01.</p>
+<pre><code class="language-sql">select
+  _table_suffix as year,
+  wiki,
+  sum(views) / pow(10, 9) as Views
+from `fh-bigquery.wikipedia_v3.pageviews_*`
+where wiki = 'it'and datehour &gt;= '2015–01–01'
+group by 1,2
+order by 1 asc
+</code></pre>
+<p>If you write this query in BigQuery UI, it will estimate a data scanning of 4.5 TB.
+However, if you actually run it, the final scanned data will be of just 160 GB.</p>
+<p><em>How is this possible?</em></p>
+<p>When BigQuery reads only read rows belonging to the cluster that contains the data for the Italian wiki while discarding everything else.</p>
+<p><em>Why is the columns order so important in clustering?</em></p>
+<p>It is important because BigQuery will organise the data hierarchically according to the column order that is specified when the table is created.</p>
+<p>Let&rsquo;s use the following example:</p>
+<pre><code class="language-bash">select
+  wiki,
+  sum(views) / pow(10, 9) as Views
+from `fh-bigquery.wikipedia_v3.pageviews_2019`
+where title = 'Pizza'
+and datehour &gt;= '2019–01–01'
+group by 1
+order by 1 asc
+</code></pre>
+<p>This query needs to access all the &ldquo;wiki&rdquo; clusters and then it can use the &ldquo;title&rdquo; value to skip the not matching clusters.
+This results in scanning a lot more data than if the clustering columns were in the opposite order &ldquo;<strong>title</strong>&rdquo;, &ldquo;<strong>wiki</strong>&rdquo;.
+At the time of writing, the query above estimated a scanning cost of 1.4 TB but it actually scanned only 875.6 GB of data.
+Let&rsquo;s now invert the clustering columns order putting first &ldquo;<strong>title</strong>&rdquo; and second &ldquo;<strong>wiki</strong>&rdquo;, you can do so using the following command:</p>
+<pre><code class="language-bash">bq query --allow_large_results --nouse_legacy_sql \
+  --destination_table my_project_id:dataset_us.wikipedia_2019 \
+  --time_partitioning_field datehour \
+  --clustering_fields=title,wiki \
+'select * from `fh-bigquery.wikipedia_v3.pageviews_2019`'
+</code></pre>
+<p>Running the &ldquo;Pizza&rdquo; query on our new table &ldquo;<strong>my_project_id:dataset_us.wikipedia_2019</strong>&rdquo; should be much cheaper.
+In fact, while the estimation was still of 1.4 TB, the actual data read was just of 26.3 GB, that is 33 times less.</p>
+<p>As final test let&rsquo;s try filtering on the &ldquo;<strong>wiki</strong>&rdquo; column:</p>
+<pre><code class="language-sql">select
+  wiki,
+  sum(views) / pow(10, 9) as Views_B
+from `my_project_id:dataset_us.wikipedia_2019`
+where wiki = 'it' and title is not null
+and datehour &gt;= '2019–01–01'
+group by 1
+order by 1 asc
+</code></pre>
+<p>The data read estimation is always the same but now the actually data read jumped to 1.4 TB (the entire table)
+whereas, in the first example, the actually data read was just of 160 GB.</p>
+<p><strong>Note</strong>: Since BigQuery uses a columnar store, &ldquo;<strong>title is not null</strong>&rdquo; ensures that we refer always to the same number of columns in every query.
+Otherwise, the data read from the last query is lower because we refer to fewer columns.</p>
+<p>It is evident that choosing the right clustering columns and their order makes a great difference.
+You should plan it accordingly to your workloads.</p>
+<p>Remember, always <strong>partition</strong> and <strong>cluster</strong> your tables!
+It is free, it does not need to change any of your queries and it will make them cheaper and faster.</p>
+
+    </div>
+
+    
+
+
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/bigquery/">BigQuery</a>
+  
+</div>
+
+
+
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/bigquery-partitioning-clustering/&amp;text=BigQuery%20Partitioning%20&amp;amp;%20Clustering" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/bigquery-partitioning-clustering/&amp;t=BigQuery%20Partitioning%20&amp;amp;%20Clustering" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=BigQuery%20Partitioning%20&amp;amp;%20Clustering&amp;body=https://alepuccetti.github.io/post/bigquery-partitioning-clustering/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/bigquery-partitioning-clustering/&amp;title=BigQuery%20Partitioning%20&amp;amp;%20Clustering" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=BigQuery%20Partitioning%20&amp;amp;%20Clustering%20https://alepuccetti.github.io/post/bigquery-partitioning-clustering/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://alepuccetti.github.io/post/bigquery-partitioning-clustering/&amp;title=BigQuery%20Partitioning%20&amp;amp;%20Clustering" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://alepuccetti.github.io/"><img class="avatar mr-3 avatar-circle" src="/authors/admin/avatar_huc410300e956b91907a41e009b4d53c45_95286_270x270_fill_q90_lanczos_center.jpg" alt=""></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://alepuccetti.github.io/"></a></h5>
+      <h6 class="card-subtitle">Head of Automation<br>Data Platform Engineer</h6>
+      <p class="card-text">My interests include data engineering at scale, geospatial analytics, machine learning, windsurf, and cooking.</p>
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://www.linkedin.com/in/alessandropuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-linkedin"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://medium.com/@alepuccetti/" target="_blank" rel="noopener">
+        <i class="fab fa-medium"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://stackoverflow.com/users/4018047/alessandro" target="_blank" rel="noopener">
+        <i class="fab fa-stack-overflow"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <div class="article-widget content-widget-hr">
+    <h3>Related</h3>
+    <ul>
+      
+      <li><a href="/post/serverless-s3-access-logs-analytics-with-bigquery/">Serverless S3 Access Logs Analytics using BigQuery</a></li>
+      
+      <li><a href="/post/bigquery-geography-clustering/">BigQuery Geography Clustering</a></li>
+      
+      <li><a href="/post/bigquery-wildcards/">BigQuery Wildcards</a></li>
+      
+      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
+      
+      <li><a href="/post/composer-short-living-tasks/">Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></li>
+      
+    </ul>
+  </div>
+  
+
+
+
+
+
+  </div>
+</article>
+  </div>
+
+  <div class="page-footer">
+    
+    
+    <div class="container">
+      <footer class="site-footer">
+  
+
+  <p class="powered-by">
+    
+  </p>
+
+  
+  
+
+
+
+
+
+
+  <p class="powered-by">
+    
+    
+    
+    Published with
+    <a href="https://wowchemy.com/?utm_campaign=poweredby" target="_blank" rel="noopener">Wowchemy</a>  —
+    the free, <a href="https://github.com/wowchemy/wowchemy-hugo-modules" target="_blank" rel="noopener">
+    open source</a> website builder that empowers creators.
+    
+  </p>
+</footer>
+
+    </div>
+    
+  </div>
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+      
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/instant.page/5.1.0/instantpage.min.js" integrity="sha512-1+qUtKoh9XZW7j+6LhRMAyOrgSQKenQ4mluTR+cvxXjP1Z54RxZuzstR/H9kgPXQsVB8IW7DMDFUJpzLjvhGSQ==" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/python.min.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/sql.min.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
+        
+      
+
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" integrity="sha512-SeiQaaDh73yrb56sTW/RgVdi/mMqNeM2oBwubFHagc5BkixSpP1fvqF47mKzPGWYSSy4RwbBunrJBQ4Co8fRWA==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    <script>const code_highlighting = true;</script>
+    
+
+    
+    
+    
+    
+    
+    
+    <script>
+      const search_config = {"indexURI":"/index.json","minLength":1,"threshold":0.3};
+      const i18n = {"no_results":"No results found","placeholder":"Search...","results":"results found"};
+      const content_type = {
+        'post': "Posts",
+        'project': "Projects",
+        'publication' : "Publications",
+        'talk' : "Talks",
+        'slides' : "Slides"
+        };
+    </script>
+    
+
+    
+    
+
+    
+    
+    <script id="search-hit-fuse-template" type="text/x-template">
+      <div class="search-hit" id="summary-{{key}}">
+      <div class="search-hit-content">
+        <div class="search-hit-name">
+          <a href="{{relpermalink}}">{{title}}</a>
+          <div class="article-metadata search-hit-type">{{type}}</div>
+          <p class="search-hit-description">{{snippet}}</p>
+        </div>
+      </div>
+      </div>
+    </script>
+    
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" integrity="sha256-VzgmKYmhsGNNN4Ph1kMW+BjoYJM2jV5i4IlFoeZA9XI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+    
+
+    
+    
+
+    
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    
+    <script src="/js/wowchemy.min.abf79d5abd9391a904c9b122bfe98c04.js"></script>
+
+    
+
+
+
+
+
+
+</body>
+</html>

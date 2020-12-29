@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Automation | Alessandro Puccetti</title>
+    <link>https://alepuccetti.github.io/tag/automation/</link>
+      <atom:link href="https://alepuccetti.github.io/tag/automation/index.xml" rel="self" type="application/rss+xml" />
+    <description>Automation</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Mon, 15 Jul 2019 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Automation</title>
+      <link>https://alepuccetti.github.io/tag/automation/</link>
+    </image>
+    
+    <item>
+      <title>Google Cloud Composer: Overcoming The Short-living Tasks Problem</title>
+      <link>https://alepuccetti.github.io/post/composer-short-living-tasks/</link>
+      <pubDate>Mon, 15 Jul 2019 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/composer-short-living-tasks/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-google-cloud-composer&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./gcp_airflow_composer.png&#34; data-caption=&#34;Google Cloud Composer&#34;&gt;
+
+
+  &lt;img src=&#34;./gcp_airflow_composer.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Google Cloud Composer
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://cloud.google.com/composer&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Google Cloud Composer&lt;/a&gt; is Google Cloud Platform product that helps you manage complex workflows with ease.&lt;/p&gt;
+&lt;p&gt;It is built on top of &lt;a href=&#34;https://airflow.apache.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Apache Airflow&lt;/a&gt; and is a fully managed service that leverages other GCP products
+like Cloud SQL, GCS, Kubernetes Engine, Stackdriver, Cloud SQL and Identity Aware Proxies.&lt;/p&gt;
+&lt;p&gt;You don&amp;rsquo;t have to worry about provisioning and dev-ops, so you can focus on your core business logic and let Google take care of the rest.
+With Airflow it&amp;rsquo;s easy to create, schedule, and monitor pipelines that span both cloud and on-premises data centres.
+With a vast selection of &lt;em&gt;&amp;ldquo;Operators&amp;rdquo;&lt;/em&gt;, you can define pipelines natively in Python with just a few lines of code,
+and connect to several cloud providers or on-premises instances.
+If you don&amp;rsquo;t find the operator that fits your needs, it&amp;rsquo;s incredibly easy to create your own and import it.
+If you want to learn more about Apache Airflow, refer to the official &lt;a href=&#34;https://airflow.apache.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;docs&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;running-short-living-tasks&#34;&gt;Running short-living tasks&lt;/h2&gt;
+&lt;p&gt;Airflow is a great tool, but as is often the case with high-level tools,
+it can introduce overheads when compared to lower-level implementations of the same operation.
+To get an idea of the overhead that Airflow could introduce,
+we can analyse the &lt;a href=&#34;https://cloud.google.com/composer/docs/tutorials/health-check&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;health-check example&lt;/a&gt; and run it on a Cloud Composer instance.
+The health-check DAG consists of a single bash operator that executes a simple command ( &lt;code&gt;echo ENVIRONMENT_NAME&lt;/code&gt;).
+The following screenshot shows 5 runs of this workflow and returns run-times of 3.6 and 5 seconds.
+As this scale linearly across multiple invocations, the lag becomes a real problem if - like us - you&amp;rsquo;re running thousands of them.
+To validate this, let&amp;rsquo;s also measure how much time the same command run for if executed directly from the command line.&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-echo-task-information-from-airflow-ui&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./airflow_tasks_view.png&#34; data-caption=&#34;echo task information from Airflow UI&#34;&gt;
+
+
+  &lt;img src=&#34;./airflow_tasks_view.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    echo task information from Airflow UI
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# time echo my-awesome-string
+
+real    0m0.000s
+user    0m0.000s
+sys     0m0.000s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As expected &lt;code&gt;echo&lt;/code&gt; is blazing fast - and even trying to measure its execution time with the standard implementation of &lt;code&gt;time&lt;/code&gt; does not cut it.
+We could recompile the kernel with &lt;code&gt;CONFIG_HIGH_RES_TIMERS=y&lt;/code&gt; - but who has time for that!
+So to find out, let&amp;rsquo;s use &lt;code&gt;date&lt;/code&gt; with nanosecond precision (keep in mind that in this way the measure will be slightly overestimated).&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# date +&amp;quot;%9N&amp;quot;; echo my-awesome-string ; date +&amp;quot;%9N&amp;quot;
+571368370
+my-awesome-string
+573152179
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This output is the decimal part of the date-stamp expressed in nanoseconds, so to get the elapsed time the equation is:&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-single-task-time&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./single_task_time.png&#34; data-caption=&#34;Single Task Time&#34;&gt;
+
+
+  &lt;img src=&#34;./single_task_time.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Single Task Time
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;a-more-realistic-yet-simple-pipeline&#34;&gt;A more realistic, yet simple pipeline&lt;/h2&gt;
+&lt;p&gt;Now that the results are in, it is pretty clear that the actual time needed to run the &lt;code&gt;echo&lt;/code&gt; command is irrelevant
+compared with the duration time of the corresponding Airflow task.
+So in this case, we can say that Airflow introduces an overhead of about 4 seconds.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s apply these findings to a more real-world example. Let&amp;rsquo;s imagine we have a pipeline made of 4 tasks:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Run a query on BigQuery using the BigQuery operator.&lt;/li&gt;
+&lt;li&gt;Export the data to GCS.&lt;/li&gt;
+&lt;li&gt;Compose the exported file into a single file.&lt;/li&gt;
+&lt;li&gt;Copy the composed file to S3.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-sample-pipeline&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./pipeline_diagram.png&#34; data-caption=&#34;Sample Pipeline&#34;&gt;
+
+
+  &lt;img src=&#34;./pipeline_diagram.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Sample Pipeline
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;In our world, this pipeline runs daily for each country (of which we cover almost 250), which results in 1,000 tasks per daily run.
+It takes just a few minutes to execute this operation via a simple bash script because each operation runs for just a few seconds.
+Using Airflow however, this pipeline takes about an hour to complete.
+When running a backfill job over 3 years of data across 3 different instances of this pipeline,
+we end up with more than 3 millions tasks to execute, and having so many tasks to manage at the same time creates an avalanche effect.
+This overwhelms the system and causes problems in getting tasks to schedule, queue, and run.&lt;/p&gt;
+&lt;p&gt;To achieve our aim while invoking fewer tasks, we accepted a reduction in the granularity of execution and parallelism
+but maintained the automation capabilities offered by Airflow.
+We were able to tune this developing an Airflow plugin called Chains, which can be found in the &lt;a href=&#34;https://github.com/huq-industries/airflow-plugins&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;airflow-plugins&lt;/a&gt; repository.&lt;/p&gt;
+&lt;p&gt;NB. If you have built a custom operator or plugins that you want to share, you can do that by submitting a PR to that repository.&lt;/p&gt;
+&lt;h1 id=&#34;the-chain-airflow-plugin&#34;&gt;The Chain Airflow plugin&lt;/h1&gt;
+&lt;p&gt;The Chain plugin offers 2 operators that you can use to chain together a set of operations:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;BigQueryChainOperator&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;BigQueryToCloudStorageChainOperator&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These operators are based on the corresponding official ones ( &lt;em&gt;BigQueryOperator&lt;/em&gt; and &lt;em&gt;BigQueryToCloudStorageOperator&lt;/em&gt;) with just a few simple modifications.
+They can take lists of values instead of single values as parameters, and will then loop on the list to run all the operation in sequence.&lt;/p&gt;
+&lt;p&gt;This solution trades parallelism and granularity in favour of reducing the number of tasks bundling together multiple operations into a single Airflow task.
+Using these operators in our example pipeline, we were able to bundle the countries
+into groups and adjust the trade-off between parallelism and the total number of Airflow tasks.
+In our case, by using Chains and partitioning our countries into 7 groups,
+we were able to reduce the number of Airflow tasks by a factor of 35.&lt;/p&gt;
+&lt;h1 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h1&gt;
+&lt;p&gt;The results include better performances in both the single-day and full historical backfill use-cases.
+Single days run in less than 12 minutes vs.
+60 minutes &lt;em&gt;(a 5x improvement)&lt;/em&gt;.
+Running the 3-year backfill for our 3 different types of pipeline finish in less than a day instead of an estimated 3 months &lt;em&gt;(90x improvement)&lt;/em&gt;!
+This helps to confirm that the problem was indeed the Airflow per-task overhead.&lt;/p&gt;
+&lt;p&gt;Of course, this is somewhat expected, as Airflow is not designed to be a real-time system and is really designed for managing larger and more complex pipelines.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

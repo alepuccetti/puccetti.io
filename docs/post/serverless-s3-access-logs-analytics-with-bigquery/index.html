@@ -1,0 +1,1428 @@
+<!DOCTYPE html><html lang="en-us" >
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  
+  
+  <meta name="generator" content="Wowchemy 5.0.0-beta.1 for Hugo">
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Configuring a Serverless and full-managed system to analyze S3 access logs using BigQuery.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/">
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#F10D06">
+  
+
+  
+  
+
+  
+  
+  
+  
+    
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha256-FMvZuGapsJLjouA6k7Eo2lusoAX9i0ShlWFG6qt7SLc=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" integrity="sha512-1xoFisiGdy9nvho8EgXuXvnpR5GAMSjFwp40gSRE3NwdUdIMIKuPa7bqoUhLD0O/5tPNhteAsE5XyyMi5reQVA==" crossorigin="anonymous">
+    
+
+    
+
+    
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.2.2/lazysizes.min.js" integrity="sha512-TmDwFLhg3UA4ZG0Eb4MIyT1O1Mb+Oww5kFG0uHqXsdbyZz9DcvYQhKpGgNkamAI6h2lGGZq2X8ftOJvF/XjTUg==" crossorigin="anonymous" async></script>
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+        
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+
+  
+
+  
+  
+  
+    
+      
+      
+      <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Montserrat:400,700%7CRoboto:400,400italic,700%7CRoboto+Mono&display=swap">
+    
+  
+
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/wowchemy.min.27ed1fd6838bf032863cbd580ffa8cf3.css">
+
+  
+
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-WKV4BNXC61"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+
+  function gtag() {
+      dataLayer.push(arguments);
+  }
+
+  function trackOutboundLink(url, target) {
+    gtag('event', 'click', {
+         'event_category': 'outbound',
+         'event_label': url,
+         'transport_type': 'beacon',
+         'event_callback': function () {
+           if (target !== '_blank') {
+             document.location = url;
+           }
+         }
+    });
+    console.debug("Outbound link clicked: " + url);
+  }
+
+  function onClickCallback(event) {
+    if ((event.target.tagName !== 'A') || (event.target.host === window.location.host)) {
+      return;
+    }
+    trackOutboundLink(event.target, event.target.getAttribute('target'));  
+  }
+
+  gtag('js', new Date());
+  gtag('config', 'G-WKV4BNXC61', {});
+
+  
+  document.addEventListener('click', onClickCallback, false);
+</script>
+
+
+  
+
+  
+
+
+  
+  
+
+  
+
+  <link rel="manifest" href="/index.webmanifest">
+  <link rel="icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_32x32_fill_lanczos_center_2.png">
+  <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png">
+
+  <link rel="canonical" href="https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/">
+
+  
+  
+  
+  
+  
+  
+  
+    
+    
+  
+  
+  <meta property="twitter:card" content="summary">
+  
+  <meta property="twitter:site" content="@alepuccetti">
+  <meta property="twitter:creator" content="@alepuccetti">
+  
+  <meta property="og:site_name" content="Alessandro Puccetti">
+  <meta property="og:url" content="https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/">
+  <meta property="og:title" content="Serverless S3 Access Logs Analytics using BigQuery | Alessandro Puccetti">
+  <meta property="og:description" content="Configuring a Serverless and full-managed system to analyze S3 access logs using BigQuery."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png">
+  <meta property="twitter:image" content="https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
+  
+    
+      <meta property="article:published_time" content="2020-05-10T00:00:00&#43;00:00">
+    
+    <meta property="article:modified_time" content="2020-05-10T00:00:00&#43;00:00">
+  
+
+  
+
+
+    
+
+
+
+
+
+
+  
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/"
+  },
+  "headline": "Serverless S3 Access Logs Analytics using BigQuery",
+  
+  "datePublished": "2020-05-10T00:00:00Z",
+  "dateModified": "2020-05-10T00:00:00Z",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Alessandro Puccetti",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png"
+    }
+  },
+  "description": "Configuring a Serverless and full-managed system to analyze S3 access logs using BigQuery."
+}
+</script>
+
+  
+
+  
+
+
+  
+
+
+  
+
+
+
+
+
+  <title>Serverless S3 Access Logs Analytics using BigQuery | Alessandro Puccetti</title>
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class="page-wrapper  ">
+
+  
+  
+  
+  
+  
+  <script src="/js/wowchemy-init.js"></script>
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control">
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  <div class="page-header">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="d-none d-lg-inline-flex">
+      <a class="navbar-brand" href="/">Alessandro Puccetti</a>
+    </div>
+    
+
+    
+    <button type="button" class="navbar-toggler" data-toggle="collapse"
+            data-target="#navbar-content" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+    <span><i class="fas fa-bars"></i></span>
+    </button>
+    
+
+    
+    <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+      <a class="navbar-brand" href="/">Alessandro Puccetti</a>
+    </div>
+    
+
+    
+    
+    <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+      
+      <ul class="navbar-nav d-md-inline-flex">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#about"><span>Home</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#posts"><span>Posts</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/about/"><span>About</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/media/alessandro-puccetti-resume.pdf"><span>Resume</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+      </ul>
+    </div>
+
+    <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+
+      
+      
+        
+      
+
+      
+      
+      <li class="nav-item">
+        <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+      </li>
+      
+
+      
+      
+      <li class="nav-item dropdown theme-dropdown">
+        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
+          <i class="fas fa-moon" aria-hidden="true"></i>
+        </a>
+        <div class="dropdown-menu">
+          <a href="#" class="dropdown-item js-set-theme-light">
+            <span>Light</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-dark">
+            <span>Dark</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-auto">
+            <span>Automatic</span>
+          </a>
+        </div>
+      </li>
+      
+
+      
+
+    </ul>
+
+  </div>
+</nav>
+
+
+  </div>
+
+  <div class="page-body">
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>Serverless S3 Access Logs Analytics using BigQuery</h1>
+
+  
+  <p class="page-subtitle">Configuring a Serverless and full-managed system to analyze S3 access logs using BigQuery.</p>
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+  <span >
+      </span>
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    May 10, 2020
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    8 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <span class="article-categories">
+    <i class="fas fa-folder mr-1"></i><a href="/category/data-engineering/">Data Engineering</a>, <a href="/category/analytics/">Analytics</a></span>
+  
+
+</div>
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-multi-cloud-data-analytics">
+
+
+  <a data-fancybox="" href="./man_binoculars.jpg" data-caption="Multi-cloud Data Analytics">
+
+
+  <img src="./man_binoculars.jpg" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption>
+    Multi-cloud Data Analytics
+  </figcaption>
+
+
+</figure>
+
+<p>Do you use BigQuery? Are you interested in knowing how to integrate data from different cloud providers into BigQuery? In this blogpost, we will implement a <strong>serverless</strong> and <strong>fully managed</strong> system to make available S3 access logs into BigQuery to easily integrate them with other data sources and reporting systems. To achieve this we will see how to set up AWS S3 access logs delivery and configure Google <a href="https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3" target="_blank" rel="noopener">Data Transfer Service</a> in order to schedule fully managed S3 to Cloud Storage transfers.We will also use <a href="https://cloud.google.com/bigquery/external-table-definition" target="_blank" rel="noopener">BigQuery external table</a> to read data directly from Google Cloud Storage to access always to the most recent data without keeping reloading data into BigQuery. Finally, we will leverage <a href="https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions#temporary-udf-syntax" target="_blank" rel="noopener">persistent UDFs</a> to parse the logs into tabular format on the fly.</p>
+<h2 id="set-up-s3-access-logging">Set up S3 access logging</h2>
+<p>AWS allows you to export <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/ServerLogs.html" target="_blank" rel="noopener">S3 access logs</a>, which can be used to monitor user access and build business metrics. Although, you can export logs for a specific bucket into itself, this might cause extra logs to get generated. In our scenario we use a different bucket to collect and store the access logs of many other buckets. Also, S3 access logs can be exported only to a bucket in the same region for the monitored one. So we will need to create a different bucket for each region where we have buckets that we want to monitor. In this scenario, we will work in the &ldquo;eu-west-1&rdquo; region. Let’s create a bucket to collect and store the access logs.</p>
+<pre><code class="language-bash">aws s3api create-bucket --bucket MY_BUCKET_EU-WEST-1 --region eu-west-1
+</code></pre>
+<p>Now we need to set up S3 access logs delivery. First we grant the AWS LogDelivery group the relevant permissions to our destination bucket:</p>
+<pre><code class="language-bash">aws s3api put-bucket-acl --bucket MY_BUCKET_EU-WEST-1 --grand-write URI=http://acs.amazonaws.com/groups/s3/LogDelivery --grant-read-acp URI=http://acs.amazonaws.com/groups/s3/LogDelivery
+</code></pre>
+<p>Then we define the logging configuration locally in a JSON file:</p>
+<pre><code class="language-json">{
+  &quot;LoggingEnabled&quot;: {
+    &quot;TargetBucket&quot;: &quot;MY_BUCKET_EU-WEST-1&quot;,
+    &quot;TargetPrefix&quot;: &quot;BUCKET_TO_LOG/&quot;,
+  }
+}
+</code></pre>
+<p><code>TargetBucket</code> is the bucket where the logs will be delivered. You can provide a prefix for the logs using <code>TargetPrefix</code> (optional), we use it to separate the logs of different buckets but you could use a different logic. Now we need to enable logging:</p>
+<pre><code class="language-bash">aws s3api put-bucket-logging --bucket BUCKET_TO_LOG --bucket-logging-status file://logging.json
+</code></pre>
+<p>It’s worthy to remember that logs are delivered on a <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/ServerLogs.html#LogDeliveryBestEffort" target="_blank" rel="noopener">best effort basis</a>, usually most log records are delivered within a few hours of the time they are recorded, but can be more frequently.</p>
+<h2 id="transfer-logs-to-google-cloud-platform">Transfer logs to Google cloud Platform</h2>
+<p>In our scenario, we will transfer the data first into Cloud Storage using the <a href="https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3" target="_blank" rel="noopener">Data Transfer</a> service and then using <a href="https://cloud.google.com/bigquery/external-table-definition" target="_blank" rel="noopener">BigQuery external table</a> to run queries on them. Another possible solution would be to use <a href="https://cloud.google.com/bigquery-transfer/docs/s3-transfer" target="_blank" rel="noopener">S3 to BigQuery</a> data transfer service to directly transfer the data into BigQuery.
+The Data Transfer service is fully managed, so you just need to configure it and you won’t need to provision and monitor any infrastructure. Transfers are scheduled to run every 24 hours, if you need a different interval you will have to implement the data transfer yourself instead of using this service. Before setting up the transfer we need a destination bucket on Cloud Storage. Let’s create a multi-regional bucket in Europe.</p>
+<pre><code class="language-bash">gsutil mb -l EU gs://MY_AWS_S3_ACCESS_LOGS_MIRROR/
+</code></pre>
+<p>To set up the transfer service, log into your cloud console to find <em>Data Transfer</em> under the <em>Storage</em> section. Now click on &ldquo;Create a transfer job&rdquo; and follow the steps below:
+As a source we select &ldquo;Amazon S3 bucket and include the bucket name we want to read from, in our example &ldquo;MY-S3-ACCESS-LOGS-EU-WEST-1&rdquo;. We need to provide AWS authentication Access key ID and Secret access key that have the permission to read the bucket.
+As the destination, we put the bucket we just created MY_AWS_S3_ACCESS_LOGS_MIRROR and leave all the other options un-ticked.
+We select to run daily at a specific time.
+Click on Create.</p>
+<p>For more detailed information refer to the <a href="https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3" target="_blank" rel="noopener">official documentation</a>.</p>
+<p>We still need to be able to access the data in BigQuery to do our analytics and build reporting dashboards with Data Studio. Unfortunately, AWS S3 log entries are not in JSON or CSV-like format but they use their <a href="https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html" target="_blank" rel="noopener">own</a>. For this reason, BigQuery cannot automatically load it into a table with the desired schema. To have the logs parsed as we desire we will use a persistent UDF but first we need to make the log entries &ldquo;available&rdquo; to BigQuery. To do so, we define an external table that reads data from our mirror bucket in Cloud Storage and we have to configure it as the files use newline as field separator. As a result, we want a table where each row contains an entire log entry, we choose the newline character as field separator because we do not expect to have any of them in our log entries. This will result in a table with a single column.
+To create our source table we can use the cloud console:
+Select the dataset you want to create your table in and click create table.
+In the table creation menu, select as source &ldquo;Google Cloud Storage&rdquo;, CSV as format, and add the prefix of the data that you want to be the sources of the table (remember that you can use wildcard to say to BigQuery to select all the files within the prefix).
+Choose your table name (in this example we will use &ldquo;s3_raw_logs_external&rdquo;) and because we do not want to actually load the data, we need to select &ldquo;External table&rdquo; in &ldquo;Table type&rdquo;.
+In the schema section add a single column called &ldquo;text&rdquo; of type STRING.
+Click on &ldquo;Advanced options&rdquo; and set the field delimiter to be &ldquo;Custom&rdquo; and insert s character that should never be present (e.g. &ldquo;§&quot;). You can leave the other options with their default values and click &ldquo;create&rdquo;.</p>
+<p>Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.</p>
+<h2 id="transform-raw-logs-into-tabular-format">Transform raw logs into tabular format</h2>
+<p>As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &ldquo;\&rdquo; instead of &ldquo;&quot; because we need to escape when defining the function.</p>
+<pre><code class="language-javascript">CREATE OR REPLACE FUNCTION `PROJECT_ID.DATASET_ID.s3_log_parser`(text STRING)
+RETURNS STRUCT&lt;bucket_owner STRING, bucket STRING, timestamp STRING, remote_ip STRING, requester STRING, request_id STRING, operation STRING, key STRING, request_uri STRING, http_status INT64, error_code STRING, bytes_sent INT64, object_size INT64, total_time INT64, turn_around_time INT64, referrer STRING, user_agent STRING, version_id STRING, host_id STRING, _error_message STRING, _s3_log_line STRING&gt;
+LANGUAGE js
+AS &quot;&quot;&quot;
+/*
+This regex follows the logformat specs at https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html
+Note that we need to use '\' instead of '' because BigQuery escaping rules and we also need to escape ‘\’ using ‘\\’. The function will be saved with a single ‘\’ but will need to be saved using ‘\\’ instead.
+*/
+var ACCESS_LOG_REGEXP = /(?:([a-z0-9]+)|-) (?:-|([\\w\\.\\-_]+)) (?:(\\[[^\\]]+\\])|-) (?:([\\d\\.]+)|-) (?:-|([\\w:\\/\\-_]+)) (?:([\\w.-_]+)|-) (?:([\\w\\.]+)|-) (?:-|([\\w0-9\\.\\-_\\/%\\*\\?\\[\\]]+)) (?:&quot;-&quot;|&quot;([^&quot;]+)&quot;|-) (?:(\\d+)|-) (?:([\\w]+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:&quot;-&quot;|&quot;([^&quot;]+)&quot;|-) (?:&quot;-&quot;|&quot;([^&quot;]+)&quot;|-) (?:([\\w]+)|-) (?:([\\w\\+\\/=]+)|-) (?:([\\w]+)|-) (?:([\\w-]+)|-) (?:([\\w-]+)|-) (?:([\\w-\\.]+)|-) (?:([\\w\\.]+)|-)/i;
+this._s3_log_line = text;
+var matches = null;
+// Catch error during regex
+try {
+  matches = text.match(ACCESS_LOG_REGEXP);
+} catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  return this;
+}
+
+// Parse first tier fields, we want this field to be all present or get a failure with an error message.
+try {
+  this.bucket_owner = matches[1];
+  this.bucket = matches[2];
+  this.timestamp = matches[3];
+  this.remote_ip = matches[4];
+  this.requester = matches[5];
+  this.request_id = matches[6];
+  this.operation = matches[7];
+  this.key = matches[8];
+  this.request_uri = matches[9];
+  this.http_status = matches[10];
+  this.error_code = matches[11];
+  this.bytes_sent = matches[12];
+  this.object_size = matches[13];
+  this.total_time = matches[14];
+  this.turn_around_time = matches[15];
+} catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  this._parse_result = JSON.stringify(matches);
+  return this;
+}
+
+// Parse additional fields
+try {
+  this.referrer = matches[16];
+  this.user_agent = matches[17];
+  this.version_id = matches[18];
+  this.host_id = matches[19];
+  } catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  return this;
+}
+return this;
+&quot;&quot;&quot;;
+</code></pre>
+<p>Here you can find the <a href="https://gist.github.com/alepuccetti/544863656931199027c894b02497c2eb" target="_blank" rel="noopener">GitHub gist</a>.</p>
+<p>You can copy and paste the code above into the BigQuery UI to create the <strong>s3_log_parser</strong> as a persistent UDF, just replace <code>PROJECT_ID</code> and <code>DATASET_ID</code> with valid values for your environment.</p>
+<p>Now we have easy access to the data and the logic to transform it into tabular format, the following query will parse all the logs entry into the column defined in the UDF.</p>
+<pre><code class="language-sql">select
+  s3_log.* except(timestamp, _error_message, _s3_log_line),
+  parse_timestamp(&quot;[%d/%b/%Y:%H:%M:%S %z]&quot;, s3_log.timestamp) as timestamp
+from (
+  select
+    `PROJECT_ID.DATASET_ID.s3_log_parser`(text) as s3_log
+  from `PROJECT_ID.DATASET_ID.s3_raw_logs_external`
+)
+;
+</code></pre>
+<p>Let’s copy and paste this query into the BigQuery UI and run it. If you have already data into the Cloud Storage bucket you will see the logs parsed out. Now click on &ldquo;Save view&rdquo;, choose a destination dataset and a name for the view (e.g. s3_logs_parsed). In this way, we can use the view as a source for our analytics reporting dashboards instead of always writing the query itself. Now try the following query, it should show the same results of the previous one.</p>
+<pre><code class="language-sql">Select
+*
+from PROJECT_ID.DATASET_ID.s3_logs_parsed
+</code></pre>
+<p>Now you have a serverless, fully-managed system to analyse your AWS S3 access logs into BigQuery using SQL and play with Google <a href="https://datastudio.google.com/" target="_blank" rel="noopener">Datastudio</a> to build and share reporting dashboards.</p>
+
+    </div>
+
+    
+
+
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/bigquery/">BigQuery</a>
+  
+</div>
+
+
+
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/&amp;text=Serverless%20S3%20Access%20Logs%20Analytics%20using%20BigQuery" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/&amp;t=Serverless%20S3%20Access%20Logs%20Analytics%20using%20BigQuery" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Serverless%20S3%20Access%20Logs%20Analytics%20using%20BigQuery&amp;body=https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/&amp;title=Serverless%20S3%20Access%20Logs%20Analytics%20using%20BigQuery" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=Serverless%20S3%20Access%20Logs%20Analytics%20using%20BigQuery%20https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/&amp;title=Serverless%20S3%20Access%20Logs%20Analytics%20using%20BigQuery" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://alepuccetti.github.io/"><img class="avatar mr-3 avatar-circle" src="/authors/admin/avatar_huc410300e956b91907a41e009b4d53c45_95286_270x270_fill_q90_lanczos_center.jpg" alt=""></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://alepuccetti.github.io/"></a></h5>
+      <h6 class="card-subtitle">Head of Automation<br>Data Platform Engineer</h6>
+      <p class="card-text">My interests include data engineering at scale, geospatial analytics, machine learning, windsurf, and cooking.</p>
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://www.linkedin.com/in/alessandropuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-linkedin"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://medium.com/@alepuccetti/" target="_blank" rel="noopener">
+        <i class="fab fa-medium"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://stackoverflow.com/users/4018047/alessandro" target="_blank" rel="noopener">
+        <i class="fab fa-stack-overflow"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <div class="article-widget content-widget-hr">
+    <h3>Related</h3>
+    <ul>
+      
+      <li><a href="/post/bigquery-geography-clustering/">BigQuery Geography Clustering</a></li>
+      
+      <li><a href="/post/bigquery-partitioning-clustering/">BigQuery Partitioning &amp; Clustering</a></li>
+      
+      <li><a href="/post/bigquery-wildcards/">BigQuery Wildcards</a></li>
+      
+      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
+      
+      <li><a href="/post/composer-short-living-tasks/">Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></li>
+      
+    </ul>
+  </div>
+  
+
+
+
+
+
+  </div>
+</article>
+  </div>
+
+  <div class="page-footer">
+    
+    
+    <div class="container">
+      <footer class="site-footer">
+  
+
+  <p class="powered-by">
+    
+  </p>
+
+  
+  
+
+
+
+
+
+
+  <p class="powered-by">
+    
+    
+    
+    Published with
+    <a href="https://wowchemy.com/?utm_campaign=poweredby" target="_blank" rel="noopener">Wowchemy</a>  —
+    the free, <a href="https://github.com/wowchemy/wowchemy-hugo-modules" target="_blank" rel="noopener">
+    open source</a> website builder that empowers creators.
+    
+  </p>
+</footer>
+
+    </div>
+    
+  </div>
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+      
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/instant.page/5.1.0/instantpage.min.js" integrity="sha512-1+qUtKoh9XZW7j+6LhRMAyOrgSQKenQ4mluTR+cvxXjP1Z54RxZuzstR/H9kgPXQsVB8IW7DMDFUJpzLjvhGSQ==" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/python.min.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/sql.min.js"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
+        
+      
+
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" integrity="sha512-SeiQaaDh73yrb56sTW/RgVdi/mMqNeM2oBwubFHagc5BkixSpP1fvqF47mKzPGWYSSy4RwbBunrJBQ4Co8fRWA==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    <script>const code_highlighting = true;</script>
+    
+
+    
+    
+    
+    
+    
+    
+    <script>
+      const search_config = {"indexURI":"/index.json","minLength":1,"threshold":0.3};
+      const i18n = {"no_results":"No results found","placeholder":"Search...","results":"results found"};
+      const content_type = {
+        'post': "Posts",
+        'project': "Projects",
+        'publication' : "Publications",
+        'talk' : "Talks",
+        'slides' : "Slides"
+        };
+    </script>
+    
+
+    
+    
+
+    
+    
+    <script id="search-hit-fuse-template" type="text/x-template">
+      <div class="search-hit" id="summary-{{key}}">
+      <div class="search-hit-content">
+        <div class="search-hit-name">
+          <a href="{{relpermalink}}">{{title}}</a>
+          <div class="article-metadata search-hit-type">{{type}}</div>
+          <p class="search-hit-description">{{snippet}}</p>
+        </div>
+      </div>
+      </div>
+    </script>
+    
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" integrity="sha256-VzgmKYmhsGNNN4Ph1kMW+BjoYJM2jV5i4IlFoeZA9XI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+    
+
+    
+    
+
+    
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    
+    <script src="/js/wowchemy.min.abf79d5abd9391a904c9b122bfe98c04.js"></script>
+
+    
+
+
+
+
+
+
+</body>
+</html>

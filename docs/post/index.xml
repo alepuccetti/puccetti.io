@@ -1,0 +1,844 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts | Alessandro Puccetti</title>
+    <link>https://alepuccetti.github.io/post/</link>
+      <atom:link href="https://alepuccetti.github.io/post/index.xml" rel="self" type="application/rss+xml" />
+    <description>Posts</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Sun, 10 May 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://alepuccetti.github.io/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Posts</title>
+      <link>https://alepuccetti.github.io/post/</link>
+    </image>
+    
+    <item>
+      <title>Serverless S3 Access Logs Analytics using BigQuery</title>
+      <link>https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/</link>
+      <pubDate>Sun, 10 May 2020 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/serverless-s3-access-logs-analytics-with-bigquery/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-multi-cloud-data-analytics&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./man_binoculars.jpg&#34; data-caption=&#34;Multi-cloud Data Analytics&#34;&gt;
+
+
+  &lt;img src=&#34;./man_binoculars.jpg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Multi-cloud Data Analytics
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Do you use BigQuery? Are you interested in knowing how to integrate data from different cloud providers into BigQuery? In this blogpost, we will implement a &lt;strong&gt;serverless&lt;/strong&gt; and &lt;strong&gt;fully managed&lt;/strong&gt; system to make available S3 access logs into BigQuery to easily integrate them with other data sources and reporting systems. To achieve this we will see how to set up AWS S3 access logs delivery and configure Google &lt;a href=&#34;https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Data Transfer Service&lt;/a&gt; in order to schedule fully managed S3 to Cloud Storage transfers.We will also use &lt;a href=&#34;https://cloud.google.com/bigquery/external-table-definition&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;BigQuery external table&lt;/a&gt; to read data directly from Google Cloud Storage to access always to the most recent data without keeping reloading data into BigQuery. Finally, we will leverage &lt;a href=&#34;https://cloud.google.com/bigquery/docs/reference/standard-sql/user-defined-functions#temporary-udf-syntax&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;persistent UDFs&lt;/a&gt; to parse the logs into tabular format on the fly.&lt;/p&gt;
+&lt;h2 id=&#34;set-up-s3-access-logging&#34;&gt;Set up S3 access logging&lt;/h2&gt;
+&lt;p&gt;AWS allows you to export &lt;a href=&#34;https://docs.aws.amazon.com/AmazonS3/latest/dev/ServerLogs.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;S3 access logs&lt;/a&gt;, which can be used to monitor user access and build business metrics. Although, you can export logs for a specific bucket into itself, this might cause extra logs to get generated. In our scenario we use a different bucket to collect and store the access logs of many other buckets. Also, S3 access logs can be exported only to a bucket in the same region for the monitored one. So we will need to create a different bucket for each region where we have buckets that we want to monitor. In this scenario, we will work in the &amp;ldquo;eu-west-1&amp;rdquo; region. Let’s create a bucket to collect and store the access logs.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws s3api create-bucket --bucket MY_BUCKET_EU-WEST-1 --region eu-west-1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now we need to set up S3 access logs delivery. First we grant the AWS LogDelivery group the relevant permissions to our destination bucket:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws s3api put-bucket-acl --bucket MY_BUCKET_EU-WEST-1 --grand-write URI=http://acs.amazonaws.com/groups/s3/LogDelivery --grant-read-acp URI=http://acs.amazonaws.com/groups/s3/LogDelivery
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Then we define the logging configuration locally in a JSON file:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-json&#34;&gt;{
+  &amp;quot;LoggingEnabled&amp;quot;: {
+    &amp;quot;TargetBucket&amp;quot;: &amp;quot;MY_BUCKET_EU-WEST-1&amp;quot;,
+    &amp;quot;TargetPrefix&amp;quot;: &amp;quot;BUCKET_TO_LOG/&amp;quot;,
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;&lt;code&gt;TargetBucket&lt;/code&gt; is the bucket where the logs will be delivered. You can provide a prefix for the logs using &lt;code&gt;TargetPrefix&lt;/code&gt; (optional), we use it to separate the logs of different buckets but you could use a different logic. Now we need to enable logging:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;aws s3api put-bucket-logging --bucket BUCKET_TO_LOG --bucket-logging-status file://logging.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;It’s worthy to remember that logs are delivered on a &lt;a href=&#34;https://docs.aws.amazon.com/AmazonS3/latest/dev/ServerLogs.html#LogDeliveryBestEffort&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;best effort basis&lt;/a&gt;, usually most log records are delivered within a few hours of the time they are recorded, but can be more frequently.&lt;/p&gt;
+&lt;h2 id=&#34;transfer-logs-to-google-cloud-platform&#34;&gt;Transfer logs to Google cloud Platform&lt;/h2&gt;
+&lt;p&gt;In our scenario, we will transfer the data first into Cloud Storage using the &lt;a href=&#34;https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Data Transfer&lt;/a&gt; service and then using &lt;a href=&#34;https://cloud.google.com/bigquery/external-table-definition&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;BigQuery external table&lt;/a&gt; to run queries on them. Another possible solution would be to use &lt;a href=&#34;https://cloud.google.com/bigquery-transfer/docs/s3-transfer&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;S3 to BigQuery&lt;/a&gt; data transfer service to directly transfer the data into BigQuery.
+The Data Transfer service is fully managed, so you just need to configure it and you won’t need to provision and monitor any infrastructure. Transfers are scheduled to run every 24 hours, if you need a different interval you will have to implement the data transfer yourself instead of using this service. Before setting up the transfer we need a destination bucket on Cloud Storage. Let’s create a multi-regional bucket in Europe.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;gsutil mb -l EU gs://MY_AWS_S3_ACCESS_LOGS_MIRROR/
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;To set up the transfer service, log into your cloud console to find &lt;em&gt;Data Transfer&lt;/em&gt; under the &lt;em&gt;Storage&lt;/em&gt; section. Now click on &amp;ldquo;Create a transfer job&amp;rdquo; and follow the steps below:
+As a source we select &amp;ldquo;Amazon S3 bucket and include the bucket name we want to read from, in our example &amp;ldquo;MY-S3-ACCESS-LOGS-EU-WEST-1&amp;rdquo;. We need to provide AWS authentication Access key ID and Secret access key that have the permission to read the bucket.
+As the destination, we put the bucket we just created MY_AWS_S3_ACCESS_LOGS_MIRROR and leave all the other options un-ticked.
+We select to run daily at a specific time.
+Click on Create.&lt;/p&gt;
+&lt;p&gt;For more detailed information refer to the &lt;a href=&#34;https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;official documentation&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;We still need to be able to access the data in BigQuery to do our analytics and build reporting dashboards with Data Studio. Unfortunately, AWS S3 log entries are not in JSON or CSV-like format but they use their &lt;a href=&#34;https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;own&lt;/a&gt;. For this reason, BigQuery cannot automatically load it into a table with the desired schema. To have the logs parsed as we desire we will use a persistent UDF but first we need to make the log entries &amp;ldquo;available&amp;rdquo; to BigQuery. To do so, we define an external table that reads data from our mirror bucket in Cloud Storage and we have to configure it as the files use newline as field separator. As a result, we want a table where each row contains an entire log entry, we choose the newline character as field separator because we do not expect to have any of them in our log entries. This will result in a table with a single column.
+To create our source table we can use the cloud console:
+Select the dataset you want to create your table in and click create table.
+In the table creation menu, select as source &amp;ldquo;Google Cloud Storage&amp;rdquo;, CSV as format, and add the prefix of the data that you want to be the sources of the table (remember that you can use wildcard to say to BigQuery to select all the files within the prefix).
+Choose your table name (in this example we will use &amp;ldquo;s3_raw_logs_external&amp;rdquo;) and because we do not want to actually load the data, we need to select &amp;ldquo;External table&amp;rdquo; in &amp;ldquo;Table type&amp;rdquo;.
+In the schema section add a single column called &amp;ldquo;text&amp;rdquo; of type STRING.
+Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to be &amp;ldquo;Custom&amp;rdquo; and insert s character that should never be present (e.g. &amp;ldquo;§&amp;quot;). You can leave the other options with their default values and click &amp;ldquo;create&amp;rdquo;.&lt;/p&gt;
+&lt;p&gt;Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.&lt;/p&gt;
+&lt;h2 id=&#34;transform-raw-logs-into-tabular-format&#34;&gt;Transform raw logs into tabular format&lt;/h2&gt;
+&lt;p&gt;As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &amp;ldquo;\&amp;rdquo; instead of &amp;ldquo;&amp;quot; because we need to escape when defining the function.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;CREATE OR REPLACE FUNCTION `PROJECT_ID.DATASET_ID.s3_log_parser`(text STRING)
+RETURNS STRUCT&amp;lt;bucket_owner STRING, bucket STRING, timestamp STRING, remote_ip STRING, requester STRING, request_id STRING, operation STRING, key STRING, request_uri STRING, http_status INT64, error_code STRING, bytes_sent INT64, object_size INT64, total_time INT64, turn_around_time INT64, referrer STRING, user_agent STRING, version_id STRING, host_id STRING, _error_message STRING, _s3_log_line STRING&amp;gt;
+LANGUAGE js
+AS &amp;quot;&amp;quot;&amp;quot;
+/*
+This regex follows the logformat specs at https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html
+Note that we need to use &#39;\&#39; instead of &#39;&#39; because BigQuery escaping rules and we also need to escape ‘\’ using ‘\\’. The function will be saved with a single ‘\’ but will need to be saved using ‘\\’ instead.
+*/
+var ACCESS_LOG_REGEXP = /(?:([a-z0-9]+)|-) (?:-|([\\w\\.\\-_]+)) (?:(\\[[^\\]]+\\])|-) (?:([\\d\\.]+)|-) (?:-|([\\w:\\/\\-_]+)) (?:([\\w.-_]+)|-) (?:([\\w\\.]+)|-) (?:-|([\\w0-9\\.\\-_\\/%\\*\\?\\[\\]]+)) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:(\\d+)|-) (?:([\\w]+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:([\\w]+)|-) (?:([\\w\\+\\/=]+)|-) (?:([\\w]+)|-) (?:([\\w-]+)|-) (?:([\\w-]+)|-) (?:([\\w-\\.]+)|-) (?:([\\w\\.]+)|-)/i;
+this._s3_log_line = text;
+var matches = null;
+// Catch error during regex
+try {
+  matches = text.match(ACCESS_LOG_REGEXP);
+} catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  return this;
+}
+
+// Parse first tier fields, we want this field to be all present or get a failure with an error message.
+try {
+  this.bucket_owner = matches[1];
+  this.bucket = matches[2];
+  this.timestamp = matches[3];
+  this.remote_ip = matches[4];
+  this.requester = matches[5];
+  this.request_id = matches[6];
+  this.operation = matches[7];
+  this.key = matches[8];
+  this.request_uri = matches[9];
+  this.http_status = matches[10];
+  this.error_code = matches[11];
+  this.bytes_sent = matches[12];
+  this.object_size = matches[13];
+  this.total_time = matches[14];
+  this.turn_around_time = matches[15];
+} catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  this._parse_result = JSON.stringify(matches);
+  return this;
+}
+
+// Parse additional fields
+try {
+  this.referrer = matches[16];
+  this.user_agent = matches[17];
+  this.version_id = matches[18];
+  this.host_id = matches[19];
+  } catch(err) {
+  this._error_message = err.message;
+  this._s3_log_line = text;
+  return this;
+}
+return this;
+&amp;quot;&amp;quot;&amp;quot;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Here you can find the &lt;a href=&#34;https://gist.github.com/alepuccetti/544863656931199027c894b02497c2eb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GitHub gist&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;You can copy and paste the code above into the BigQuery UI to create the &lt;strong&gt;s3_log_parser&lt;/strong&gt; as a persistent UDF, just replace &lt;code&gt;PROJECT_ID&lt;/code&gt; and &lt;code&gt;DATASET_ID&lt;/code&gt; with valid values for your environment.&lt;/p&gt;
+&lt;p&gt;Now we have easy access to the data and the logic to transform it into tabular format, the following query will parse all the logs entry into the column defined in the UDF.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  s3_log.* except(timestamp, _error_message, _s3_log_line),
+  parse_timestamp(&amp;quot;[%d/%b/%Y:%H:%M:%S %z]&amp;quot;, s3_log.timestamp) as timestamp
+from (
+  select
+    `PROJECT_ID.DATASET_ID.s3_log_parser`(text) as s3_log
+  from `PROJECT_ID.DATASET_ID.s3_raw_logs_external`
+)
+;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Let’s copy and paste this query into the BigQuery UI and run it. If you have already data into the Cloud Storage bucket you will see the logs parsed out. Now click on &amp;ldquo;Save view&amp;rdquo;, choose a destination dataset and a name for the view (e.g. s3_logs_parsed). In this way, we can use the view as a source for our analytics reporting dashboards instead of always writing the query itself. Now try the following query, it should show the same results of the previous one.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;Select
+*
+from PROJECT_ID.DATASET_ID.s3_logs_parsed
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Now you have a serverless, fully-managed system to analyse your AWS S3 access logs into BigQuery using SQL and play with Google &lt;a href=&#34;https://datastudio.google.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Datastudio&lt;/a&gt; to build and share reporting dashboards.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>BigQuery Geography Clustering</title>
+      <link>https://alepuccetti.github.io/post/bigquery-geography-clustering/</link>
+      <pubDate>Thu, 30 Jan 2020 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-geography-clustering/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-world-map&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./world-map-colored-countries.png&#34; data-caption=&#34;World Map&#34;&gt;
+
+
+  &lt;img src=&#34;./world-map-colored-countries.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    World Map
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;The BigQuery team rolled out support for &lt;a href=&#34;https://cloud.google.com/bigquery/docs/gis-data&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;geography type&lt;/a&gt; a while ago and
+they have never stopped improving performances and &lt;a href=&#34;https://cloud.google.com/bigquery/docs/reference/standard-sql/geography_functions&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Geographic Information System functions&lt;/a&gt; (GIS).
+This allows users to run &lt;em&gt;complex geo-spatial analytics&lt;/em&gt; directly in BigQuery harnessing all its power, simplicity, and reliability.&lt;/p&gt;
+&lt;p&gt;Hold on your keyboard (or your screen if you are reading this on a mobile device).&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Now you can cluster tables using a geography column&lt;/strong&gt;. Say what!!!!&lt;/p&gt;
+&lt;p&gt;This is game changing for users working heavily with geodata.
+By clustering your table on a geography column, BigQuery can reduce the amount of data that needs to read to serve the query.
+This makes queries cheaper and run faster when filtering on clustering column.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s see the benefits of clustering table using geography column with an example.
+We will use one of the great public datasets curated by &lt;a href=&#34;https://twitter.com/felipehoffa&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Felipe Hoffa&lt;/a&gt;.
+We will use the &lt;em&gt;weather_gsod&lt;/em&gt; specifically the two tables &lt;em&gt;all&lt;/em&gt; and &lt;em&gt;all_geoclustered&lt;/em&gt;.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s say that we want the all-time minimum and maximum temperature within the Greater London area for each station.
+Our query will look like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  name,
+  min(temp) as min_temp,
+  max(temp) as max_temp
+from `fh-bigquery.weather_gsod.all`
+where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
+group by 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Results:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-csv&#34;&gt;name                min_temp  max_temp
+ST JAMES PARK       26.3      83.2
+KENLEY AIRFIELD     18.0      82.8
+HEATHROW            18.6      83.4
+CITY                22.3      92.2
+BLACKWALL           37.0      62.2
+NORTHOLT            18.4      84.1
+BIGGIN HILL         15.5      90.3
+PURLEY OAKS         23.0      81.7
+LEAVESDEN           22.3      89.1
+LONDON WEA CENTER   20.0      85.2
+KEW-IN-LONDON       23.3      82.4
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This query reads &lt;strong&gt;9.02GB&lt;/strong&gt; of data.
+Now let&amp;rsquo;s see how the same query perform on the clustered table:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  name,
+  min(temp) as min_temp,
+  max(temp) as max_temp
+from `fh-bigquery.weather_gsod.all_geoclusterd`
+where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
+group by 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The result is obviously the same but, this time, BigQuery reads just &lt;strong&gt;98.97MB&lt;/strong&gt; of the data!!!
+So switching to the geo clustered table made this query almost &lt;strong&gt;100 times&lt;/strong&gt; cheaper.
+Do you want to try other locations and test the differences yourself? You can use Huq Industries &lt;a href=&#34;https://gismap.huq.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GisMap tool&lt;/a&gt; to quickly draw and export polygons in various formats.&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-huq-gismaphttpgismaphuqio&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
+
+
+  &lt;img src=&#34;./huq_gismap_london_m25.jpeg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    &lt;a href=&#34;http://gismap.huq.io/&#34;&gt;Huq GisMap&lt;/a&gt;
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
+      <title>BigQuery Partitioning &amp; Clustering</title>
+      <link>https://alepuccetti.github.io/post/bigquery-partitioning-clustering/</link>
+      <pubDate>Tue, 21 Jan 2020 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-partitioning-clustering/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-shipping-containers&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./shipping_containers.jpg&#34; data-caption=&#34;Shipping Containers&#34;&gt;
+
+
+  &lt;img src=&#34;./shipping_containers.jpg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Shipping Containers
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;In this blogpost, I will explain what partitioning and clustering features in BigQuery are and
+how to supercharge your query performance and reduce query costs.&lt;/p&gt;
+&lt;h1 id=&#34;partitioning&#34;&gt;Partitioning&lt;/h1&gt;
+&lt;p&gt;Partitioning a table can make your queries run faster while spending less.
+Until December 2019, BigQuery supported table partitioning only using &lt;strong&gt;date data type&lt;/strong&gt;.
+Now, you can do it on integer ranges too.
+If you want to know more about partitioning your tables this way,
+check out this &lt;a href=&#34;https://medium.com/google-cloud/partition-on-any-field-with-bigquery-840f8aa1aaab&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;great blogpost&lt;/a&gt; by Guillaume Blaquiere.&lt;/p&gt;
+&lt;p&gt;Here, I will focus on date type partitioning.
+You can partition your data using 2 main strategies:
+on the one hand you can use a table column, and on the other, you can use the data time of ingestion.&lt;/p&gt;
+&lt;p&gt;This approach is particularly useful when you have very large datasets that go back in time for many years.
+In fact, if you want to run analytics only for specific time periods, partitioning your table by time allows BigQuery
+to read and process only the rows of that particular time span.
+Thus, your queries will run faster and, because they are reading less data, they will also cost less.&lt;/p&gt;
+&lt;p&gt;Creating a partitioned table is an easy task.
+At the time of table creation, you can specify which column is going to be used for partitioning,
+otherwise, you can set up the partitioning on &lt;a href=&#34;https://cloud.google.com/bigquery/docs/creating-partitioned-tables&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;ingestion time&lt;/a&gt;.
+Since you can query this table in the same exact way of those that are not partitioned, you won&amp;rsquo;t have to change a line of your existing queries.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  day,
+  count(*)
+from full_history
+where sampling_date &amp;gt;= &amp;quot;2019–08–05&amp;quot;
+and sampling_date &amp;lt; &amp;quot;2019–08–06&amp;quot;
+group by 1
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Assuming that &amp;ldquo;&lt;strong&gt;sampling_date&lt;/strong&gt;&amp;rdquo; is the partitioning column,
+now BigQuery can use the specified values in the &amp;ldquo;where clause&amp;rdquo; to read only data that belong to the right partitions.&lt;/p&gt;
+&lt;h4 id=&#34;bonus-nugget&#34;&gt;Bonus nugget&lt;/h4&gt;
+&lt;p&gt;You can use &lt;strong&gt;partition decorators&lt;/strong&gt; to update, delete, and overwrite entire single partitions as in:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# overwrite single partition loading from file
+bq load —-replace \
+  project_id:dataset_name.table_name$20190805 \
+  gs://my_input_bucket/data/from/20190805/* ./schema.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;And&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# overwrite single partition from query results
+bq query —- replace --use_legacy_sql=false \
+  —-destination_table project_id:dataset.table$20190805 \
+  &#39;select * from project_id:dataset.another_table&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In the cases above, both the loaded data and the query results have to belong to the referenced partition, otherwise the job will fail.&lt;/p&gt;
+&lt;h1 id=&#34;clustering&#34;&gt;Clustering&lt;/h1&gt;
+&lt;p&gt;Clustering is another way of organizing data which stores one next to the other all those rows that share similar values in the chosen clustering columns.
+This process increases the query efficiency and performances.
+Note that BigQuery supports this feature only on partitioned tables.&lt;/p&gt;
+&lt;p&gt;BigQuery can leverage clustered tables to read only data relevant to the query, so it becomes faster and cheaper.&lt;/p&gt;
+&lt;p&gt;At the table creation time, you can provide up to 4 clustering columns in a comma-separated list e.g. &amp;ldquo;&lt;strong&gt;wiki&lt;/strong&gt;&amp;rdquo;, &amp;ldquo;&lt;strong&gt;title&lt;/strong&gt;&amp;rdquo;.
+You should also keep in mind that their order is of paramount importance but we will see this in a moment.&lt;/p&gt;
+&lt;p&gt;In this section we will use &amp;ldquo;&lt;em&gt;wikipedia_v3&lt;/em&gt;&amp;rdquo; form &lt;a href=&#34;https://twitter.com/felipehoffa&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Felipe Hoffa&lt;/a&gt;&amp;rsquo;s public dataset,
+which contains yearly tables of Wikipedia page views.
+These are partitioned by the &amp;ldquo;&lt;strong&gt;datehour&lt;/strong&gt;&amp;rdquo; column and clustered on &amp;ldquo;&lt;strong&gt;wiki&lt;/strong&gt;&amp;rdquo; and &amp;ldquo;&lt;strong&gt;title&lt;/strong&gt;&amp;rdquo; columns.
+A single row may look like this:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-csv&#34;&gt;datehour,                    language,     title,   views
+2019–08–10 03:00:00 UTC,     en,           Pizza,   106
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The following query counts, broken-down per year, all the page views for the Italian wiki from 2015–01–01.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  _table_suffix as year,
+  wiki,
+  sum(views) / pow(10, 9) as Views
+from `fh-bigquery.wikipedia_v3.pageviews_*`
+where wiki = &#39;it&#39;and datehour &amp;gt;= &#39;2015–01–01&#39;
+group by 1,2
+order by 1 asc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;If you write this query in BigQuery UI, it will estimate a data scanning of 4.5 TB.
+However, if you actually run it, the final scanned data will be of just 160 GB.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;How is this possible?&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;When BigQuery reads only read rows belonging to the cluster that contains the data for the Italian wiki while discarding everything else.&lt;/p&gt;
+&lt;p&gt;&lt;em&gt;Why is the columns order so important in clustering?&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;It is important because BigQuery will organise the data hierarchically according to the column order that is specified when the table is created.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s use the following example:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;select
+  wiki,
+  sum(views) / pow(10, 9) as Views
+from `fh-bigquery.wikipedia_v3.pageviews_2019`
+where title = &#39;Pizza&#39;
+and datehour &amp;gt;= &#39;2019–01–01&#39;
+group by 1
+order by 1 asc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This query needs to access all the &amp;ldquo;wiki&amp;rdquo; clusters and then it can use the &amp;ldquo;title&amp;rdquo; value to skip the not matching clusters.
+This results in scanning a lot more data than if the clustering columns were in the opposite order &amp;ldquo;&lt;strong&gt;title&lt;/strong&gt;&amp;rdquo;, &amp;ldquo;&lt;strong&gt;wiki&lt;/strong&gt;&amp;rdquo;.
+At the time of writing, the query above estimated a scanning cost of 1.4 TB but it actually scanned only 875.6 GB of data.
+Let&amp;rsquo;s now invert the clustering columns order putting first &amp;ldquo;&lt;strong&gt;title&lt;/strong&gt;&amp;rdquo; and second &amp;ldquo;&lt;strong&gt;wiki&lt;/strong&gt;&amp;rdquo;, you can do so using the following command:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;bq query --allow_large_results --nouse_legacy_sql \
+  --destination_table my_project_id:dataset_us.wikipedia_2019 \
+  --time_partitioning_field datehour \
+  --clustering_fields=title,wiki \
+&#39;select * from `fh-bigquery.wikipedia_v3.pageviews_2019`&#39;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Running the &amp;ldquo;Pizza&amp;rdquo; query on our new table &amp;ldquo;&lt;strong&gt;my_project_id:dataset_us.wikipedia_2019&lt;/strong&gt;&amp;rdquo; should be much cheaper.
+In fact, while the estimation was still of 1.4 TB, the actual data read was just of 26.3 GB, that is 33 times less.&lt;/p&gt;
+&lt;p&gt;As final test let&amp;rsquo;s try filtering on the &amp;ldquo;&lt;strong&gt;wiki&lt;/strong&gt;&amp;rdquo; column:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  wiki,
+  sum(views) / pow(10, 9) as Views_B
+from `my_project_id:dataset_us.wikipedia_2019`
+where wiki = &#39;it&#39; and title is not null
+and datehour &amp;gt;= &#39;2019–01–01&#39;
+group by 1
+order by 1 asc
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The data read estimation is always the same but now the actually data read jumped to 1.4 TB (the entire table)
+whereas, in the first example, the actually data read was just of 160 GB.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: Since BigQuery uses a columnar store, &amp;ldquo;&lt;strong&gt;title is not null&lt;/strong&gt;&amp;rdquo; ensures that we refer always to the same number of columns in every query.
+Otherwise, the data read from the last query is lower because we refer to fewer columns.&lt;/p&gt;
+&lt;p&gt;It is evident that choosing the right clustering columns and their order makes a great difference.
+You should plan it accordingly to your workloads.&lt;/p&gt;
+&lt;p&gt;Remember, always &lt;strong&gt;partition&lt;/strong&gt; and &lt;strong&gt;cluster&lt;/strong&gt; your tables!
+It is free, it does not need to change any of your queries and it will make them cheaper and faster.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>BigQuery Wildcards</title>
+      <link>https://alepuccetti.github.io/post/bigquery-wildcards/</link>
+      <pubDate>Mon, 06 Jan 2020 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-wildcards/</guid>
+      <description>&lt;p&gt;BigQuery supports the &amp;ldquo;*&lt;em&gt;&amp;quot;&lt;/em&gt; wildcard to reference multiple tables or files.
+You can leverage this feature to load, extract, and query data across multiple sources, destinations, and tables.
+Let&amp;rsquo;s see what you can do with wildcards with some examples.&lt;/p&gt;
+&lt;p&gt;The first thing is definitely loading the data into BigQuery.
+If you deal with a very large amount of data you will have, most likely,
+tens of thousands of files coming from a data pipelines that you want to load into BigQuery.
+Using wildcards, you can easily load data from different files into a single table.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;bq load project_id:dataset_name.table_name gs://my_data/input/prefix/* ./schema.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Also, this is not limited to only one prefix but you can specify multiple ones for example:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;bq load project_id:dataset_name.table_name gs://my_data/input/prefix_1/* gs://my_data/input/prefix_5/* gs://my_data/input/prefix_25/* ./schema.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The command above will load all the files matching all the prefixes into the specified table.&lt;/p&gt;
+&lt;p&gt;Wildcards can be used in the other direction too.
+Namely, they can be used to export data from BigQuery to GCS.
+This is very useful especially because BigQuery limits exports to a single file only to tables smaller than 1GB.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;bq extract project_id:dataset_name.table_name gs://my_data/extract/prefix/file_prefix_*.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The previous command will result in multiple files exported into the &lt;em&gt;&amp;ldquo;my_data&amp;rdquo;&lt;/em&gt; bucket within the prefix &lt;em&gt;&amp;ldquo;extract/prefix/&amp;quot;&lt;/em&gt; and all file names will be:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;file_prefix_000000000000.json
+file_prefix_000000000001.json
+file_prefix_000000000002.json
+…
+file_prefix_000000003792.json
+file_prefix_000000003793.json
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The other very useful use of wildcards is evident in queries.
+In fact, you can reference multiple tables in a single query by using &lt;em&gt;&amp;quot;&lt;/em&gt;&amp;quot;* to match all the table into the dataset with the same prefix.
+For example, consider you have a collection of tables like:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;my_dataset
+├── events_GB
+...
+├── events_IT
+...
+├── events_US
+...
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The following query will return the count per day per country of events of type &lt;em&gt;&amp;ldquo;submit&amp;rdquo;&lt;/em&gt; in our dataset.&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  _table_suffix as country,
+  day,
+  count(*)
+from events_*
+where type = &amp;quot;submit&amp;quot;
+group by 1,2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;You can also filter out matched tables using &lt;em&gt;&amp;quot;_table_suffix&amp;rdquo;&lt;/em&gt; in the where clause.
+For example, if you are only interested in Germany, France, and Japan just run the following:&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
+  _table_suffix as country,
+  day,
+  count(*)
+from events_*
+where type = &amp;quot;submit&amp;quot;
+and _table_suffix in (&amp;quot;DE&amp;quot;, &amp;quot;FR&amp;quot;, &amp;quot;JP&amp;quot;)
+group by 1,2
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;What I personally like the most of using wildcards is that it enables me to design better, simpler,
+and more generic analytics queries as well as ETL jobs.
+The aim of this post was to help you improve your code quality and your productivity.&lt;/p&gt;
+&lt;p&gt;If you believe you learnt something new or if you liked the post please Clap.
+Happy query with BigQuery!!!&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>A Journey Through Big Data Using Google BigQuery</title>
+      <link>https://alepuccetti.github.io/post/bigquery-jounrey/</link>
+      <pubDate>Thu, 01 Aug 2019 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-jounrey/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-bigquery&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./bigquery_logo.svg&#34; data-caption=&#34;BigQuery&#34;&gt;
+
+
+  &lt;img src=&#34;./bigquery_logo.svg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    BigQuery
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Back in the early days of Huq we were ingesting a just few millions records per day into our geo-behavioural insights platform.
+Today that figure is in the hundreds of millions.
+During the period where our traffic was ramping intensively,
+we quickly realised that our single high-spec bare metal server setup was not going to be enough for our analytics needs.&lt;/p&gt;
+&lt;p&gt;After all, what good is building a valuable data asset if you can&amp;rsquo;t get answers out?
+We wanted to find a way to retrieve answers in seconds, not days, and so we set ourselves a mission:
+find a solution that allows us to query and obtain answers to sometimes complex, often spatial,
+queries across billions of records in minutes at most.
+We wanted &lt;strong&gt;great performance&lt;/strong&gt;, high &lt;strong&gt;reliability&lt;/strong&gt;, to make use of our &lt;strong&gt;SQL&lt;/strong&gt; skills.
+And all that with minimum set-up, and &lt;strong&gt;minimal DevOps&lt;/strong&gt; management overhead. &lt;em&gt;Moon on a stick? Definitely.&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;We tested different solutions but it quickly became clear that &lt;a href=&#34;https://cloud.google.com/bigquery&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;BigQuery&lt;/a&gt; was a step
+(often several steps) ahead of the myriad other solutions that we evaluated.
+We found BigQuery to be: &lt;strong&gt;effortless&lt;/strong&gt; to set up and use with virtually zero management and DevOps overhead.
+It has with blazingly fast performance, flexibility and portability.
+We can&amp;rsquo;t remember the last time we had to carve out a subset of our data, build indices and otherwise optimise our queries. Load your data, buckle up and go.&lt;/p&gt;
+&lt;p&gt;Because it is &lt;strong&gt;fully managed&lt;/strong&gt; you get a lot of great features out-of-the-box:
+high availability, &lt;strong&gt;serverless&lt;/strong&gt; computing, automatic backups, logging and auditing.&lt;/p&gt;
+&lt;p&gt;Moreover, BigQuery UI is a great tool that allowed the team to get up and running fast.
+BigQuery&amp;rsquo;s Standard SQL removes the need to learn a new language, or set up special DB client
+(although you can use many different SQL clients to connect to BigQuery).
+It also offers a rapidly expanding menu of GIS functions that in some ways are easier to work with than those found in PostGIS.
+Last but not least, BigQuery offers a simple pricing model that makes it very easy to estimate cost for internal and external projects,
+and to keep a firm handle on spend.&lt;/p&gt;
+&lt;p&gt;Google BigQuery has dramatically improved our access to analytics and the insights that arise from our dataset.
+Even relatively simple queries that in our heavily-optimised bare-metal environment still ran for several hours, on BigQuery returns seconds.
+BigQuery has helped us to improve the breadth and quality of our analytical offerings through speed, complexity and the ability to iterate.
+We also now serve many of our clients using BigQuery — either alone or as a backend.
+BigQuery makes it possible offer direct access to our datasets to in-house data science teams, or to power specialised dashboards according to customer needs.&lt;/p&gt;
+&lt;p&gt;For us, Google BigQuery has helped our business make a huge leap forward — and there&amp;rsquo;s no going back from here.
+Stay tuned for more technical follow-ups on our use of Google BigQuery.&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Google Cloud Composer: Overcoming The Short-living Tasks Problem</title>
+      <link>https://alepuccetti.github.io/post/composer-short-living-tasks/</link>
+      <pubDate>Mon, 15 Jul 2019 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/composer-short-living-tasks/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-google-cloud-composer&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./gcp_airflow_composer.png&#34; data-caption=&#34;Google Cloud Composer&#34;&gt;
+
+
+  &lt;img src=&#34;./gcp_airflow_composer.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Google Cloud Composer
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
+&lt;p&gt;&lt;a href=&#34;https://cloud.google.com/composer&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Google Cloud Composer&lt;/a&gt; is Google Cloud Platform product that helps you manage complex workflows with ease.&lt;/p&gt;
+&lt;p&gt;It is built on top of &lt;a href=&#34;https://airflow.apache.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Apache Airflow&lt;/a&gt; and is a fully managed service that leverages other GCP products
+like Cloud SQL, GCS, Kubernetes Engine, Stackdriver, Cloud SQL and Identity Aware Proxies.&lt;/p&gt;
+&lt;p&gt;You don&amp;rsquo;t have to worry about provisioning and dev-ops, so you can focus on your core business logic and let Google take care of the rest.
+With Airflow it&amp;rsquo;s easy to create, schedule, and monitor pipelines that span both cloud and on-premises data centres.
+With a vast selection of &lt;em&gt;&amp;ldquo;Operators&amp;rdquo;&lt;/em&gt;, you can define pipelines natively in Python with just a few lines of code,
+and connect to several cloud providers or on-premises instances.
+If you don&amp;rsquo;t find the operator that fits your needs, it&amp;rsquo;s incredibly easy to create your own and import it.
+If you want to learn more about Apache Airflow, refer to the official &lt;a href=&#34;https://airflow.apache.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;docs&lt;/a&gt;.&lt;/p&gt;
+&lt;h2 id=&#34;running-short-living-tasks&#34;&gt;Running short-living tasks&lt;/h2&gt;
+&lt;p&gt;Airflow is a great tool, but as is often the case with high-level tools,
+it can introduce overheads when compared to lower-level implementations of the same operation.
+To get an idea of the overhead that Airflow could introduce,
+we can analyse the &lt;a href=&#34;https://cloud.google.com/composer/docs/tutorials/health-check&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;health-check example&lt;/a&gt; and run it on a Cloud Composer instance.
+The health-check DAG consists of a single bash operator that executes a simple command ( &lt;code&gt;echo ENVIRONMENT_NAME&lt;/code&gt;).
+The following screenshot shows 5 runs of this workflow and returns run-times of 3.6 and 5 seconds.
+As this scale linearly across multiple invocations, the lag becomes a real problem if - like us - you&amp;rsquo;re running thousands of them.
+To validate this, let&amp;rsquo;s also measure how much time the same command run for if executed directly from the command line.&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-echo-task-information-from-airflow-ui&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./airflow_tasks_view.png&#34; data-caption=&#34;echo task information from Airflow UI&#34;&gt;
+
+
+  &lt;img src=&#34;./airflow_tasks_view.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    echo task information from Airflow UI
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;# time echo my-awesome-string
+
+real    0m0.000s
+user    0m0.000s
+sys     0m0.000s
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;As expected &lt;code&gt;echo&lt;/code&gt; is blazing fast - and even trying to measure its execution time with the standard implementation of &lt;code&gt;time&lt;/code&gt; does not cut it.
+We could recompile the kernel with &lt;code&gt;CONFIG_HIGH_RES_TIMERS=y&lt;/code&gt; - but who has time for that!
+So to find out, let&amp;rsquo;s use &lt;code&gt;date&lt;/code&gt; with nanosecond precision (keep in mind that in this way the measure will be slightly overestimated).&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;# date +&amp;quot;%9N&amp;quot;; echo my-awesome-string ; date +&amp;quot;%9N&amp;quot;
+571368370
+my-awesome-string
+573152179
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;This output is the decimal part of the date-stamp expressed in nanoseconds, so to get the elapsed time the equation is:&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-single-task-time&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./single_task_time.png&#34; data-caption=&#34;Single Task Time&#34;&gt;
+
+
+  &lt;img src=&#34;./single_task_time.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Single Task Time
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;a-more-realistic-yet-simple-pipeline&#34;&gt;A more realistic, yet simple pipeline&lt;/h2&gt;
+&lt;p&gt;Now that the results are in, it is pretty clear that the actual time needed to run the &lt;code&gt;echo&lt;/code&gt; command is irrelevant
+compared with the duration time of the corresponding Airflow task.
+So in this case, we can say that Airflow introduces an overhead of about 4 seconds.&lt;/p&gt;
+&lt;p&gt;Let&amp;rsquo;s apply these findings to a more real-world example. Let&amp;rsquo;s imagine we have a pipeline made of 4 tasks:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Run a query on BigQuery using the BigQuery operator.&lt;/li&gt;
+&lt;li&gt;Export the data to GCS.&lt;/li&gt;
+&lt;li&gt;Compose the exported file into a single file.&lt;/li&gt;
+&lt;li&gt;Copy the composed file to S3.&lt;/li&gt;
+&lt;/ol&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-sample-pipeline&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./pipeline_diagram.png&#34; data-caption=&#34;Sample Pipeline&#34;&gt;
+
+
+  &lt;img src=&#34;./pipeline_diagram.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Sample Pipeline
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;In our world, this pipeline runs daily for each country (of which we cover almost 250), which results in 1,000 tasks per daily run.
+It takes just a few minutes to execute this operation via a simple bash script because each operation runs for just a few seconds.
+Using Airflow however, this pipeline takes about an hour to complete.
+When running a backfill job over 3 years of data across 3 different instances of this pipeline,
+we end up with more than 3 millions tasks to execute, and having so many tasks to manage at the same time creates an avalanche effect.
+This overwhelms the system and causes problems in getting tasks to schedule, queue, and run.&lt;/p&gt;
+&lt;p&gt;To achieve our aim while invoking fewer tasks, we accepted a reduction in the granularity of execution and parallelism
+but maintained the automation capabilities offered by Airflow.
+We were able to tune this developing an Airflow plugin called Chains, which can be found in the &lt;a href=&#34;https://github.com/huq-industries/airflow-plugins&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;airflow-plugins&lt;/a&gt; repository.&lt;/p&gt;
+&lt;p&gt;NB. If you have built a custom operator or plugins that you want to share, you can do that by submitting a PR to that repository.&lt;/p&gt;
+&lt;h1 id=&#34;the-chain-airflow-plugin&#34;&gt;The Chain Airflow plugin&lt;/h1&gt;
+&lt;p&gt;The Chain plugin offers 2 operators that you can use to chain together a set of operations:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;BigQueryChainOperator&lt;/code&gt;&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;BigQueryToCloudStorageChainOperator&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;These operators are based on the corresponding official ones ( &lt;em&gt;BigQueryOperator&lt;/em&gt; and &lt;em&gt;BigQueryToCloudStorageOperator&lt;/em&gt;) with just a few simple modifications.
+They can take lists of values instead of single values as parameters, and will then loop on the list to run all the operation in sequence.&lt;/p&gt;
+&lt;p&gt;This solution trades parallelism and granularity in favour of reducing the number of tasks bundling together multiple operations into a single Airflow task.
+Using these operators in our example pipeline, we were able to bundle the countries
+into groups and adjust the trade-off between parallelism and the total number of Airflow tasks.
+In our case, by using Chains and partitioning our countries into 7 groups,
+we were able to reduce the number of Airflow tasks by a factor of 35.&lt;/p&gt;
+&lt;h1 id=&#34;conclusions&#34;&gt;Conclusions&lt;/h1&gt;
+&lt;p&gt;The results include better performances in both the single-day and full historical backfill use-cases.
+Single days run in less than 12 minutes vs.
+60 minutes &lt;em&gt;(a 5x improvement)&lt;/em&gt;.
+Running the 3-year backfill for our 3 different types of pipeline finish in less than a day instead of an estimated 3 months &lt;em&gt;(90x improvement)&lt;/em&gt;!
+This helps to confirm that the problem was indeed the Airflow per-task overhead.&lt;/p&gt;
+&lt;p&gt;Of course, this is somewhat expected, as Airflow is not designed to be a real-time system and is really designed for managing larger and more complex pipelines.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
