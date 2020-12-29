@@ -1,0 +1,18 @@
+# Theme metadata
+name = "Furious Red"
+
+# Is theme light or dark?
+light = true
+
+# Primary. This color is used for icons and text highlighting
+primary = "#F10D06"
+
+# Menu
+menu_primary = "#fff"
+menu_text = "#34495e"
+menu_text_active = "#F10D06"
+menu_title = "#2b2b2b"
+
+# Home sections
+home_section_odd = "rgb(255, 255, 255)"
+home_section_even = "rgb(247, 247, 247)"
