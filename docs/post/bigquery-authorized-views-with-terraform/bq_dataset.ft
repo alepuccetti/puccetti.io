@@ -1,9 +1,0 @@
-resource "google_bigquery_dataset" "data_access" {
-  dataset_id                  = "data_access"
-  frinedly_name               = "data_access"
-  description                 = "Here you can access all the data you subscribed to."
-  location                    = "EU"
-
-  labels = {
-    env = "production"
-  }
