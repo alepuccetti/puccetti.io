@@ -5,12 +5,73 @@
     <link>https://alepuccetti.github.io/post/</link>
       <atom:link href="https://alepuccetti.github.io/post/index.xml" rel="self" type="application/rss+xml" />
     <description>Posts</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Sun, 10 May 2020 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 09 Mar 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png</url>
       <title>Posts</title>
       <link>https://alepuccetti.github.io/post/</link>
     </image>
+    
+    <item>
+      <title>Time Travel with BigQuery</title>
+      <link>https://alepuccetti.github.io/post/bigquery-time-travel/</link>
+      <pubDate>Tue, 09 Mar 2021 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-time-travel/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure &gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./time_bending.jpeg&#34; &gt;
+
+
+  &lt;img src=&#34;./time_bending.jpeg&#34; alt=&#34;Time bending&#34;  &gt;
+&lt;/a&gt;
+
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;Who does not like time travel? We all saw it and were fascinated by it in many sci-fi movies, unfortunately science did not crack real-life time travel yet.&lt;/p&gt;
+&lt;p&gt;However, we can “data time-travel”. Thanks to the amazing BigQuery SQL feature “FOR SYSTEM_TIME AS OF”, we can time travel (up to 7 days in the past) to a specific timestamp (for detailed information about the syntax refer to the &lt;a href=&#34;https://cloud.google.com/bigquery/docs/reference/standard-sql/query-syntax#for_system_time_as_of&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;official documentation&lt;/a&gt;).&lt;/p&gt;
+&lt;p&gt;This feature is extremely easy to use. In fact, we can simply modify any query by adding the  clause above mentioned to the FROM clause. The following example returns all rows in  &lt;code&gt;table_a&lt;/code&gt; from exactly 3 hours ago.&lt;/p&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/277fe07f200ccac33f98ae4217740fa5.js?file=time_travel_query_interval.sql&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;Or we can specify a precise point-in-time.&lt;/p&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/277fe07f200ccac33f98ae4217740fa5.js?file=time_travel_query_point_in_time.sql&#34;&gt;&lt;/script&gt;
+
+&lt;h2 id=&#34;how-is-this-useful&#34;&gt;How is this useful?&lt;/h2&gt;
+&lt;p&gt;Ok, it is nice to talk about time travel, but how is this useful in real-life?
+In the current age of high data integration, data is inserted, deleted, and modified at a high rate. In highly integrated and streaming systems, it is often challenging to plan and perform backups that can be used to recover from processing errors. In BigQuery this can be done by just selecting rows from a specific point-in-time. This removes the need to materialize snapshots (for the past 7 days) and give us incredible granularity (timestamp precision).
+The most obvious use-case is &lt;strong&gt;data recovery&lt;/strong&gt;. We can easily recover a table state by creating a new one from a specific point-in-time.&lt;/p&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/277fe07f200ccac33f98ae4217740fa5.js?file=recover_table_point_in_time.sql&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;A more interesting and less obvious use-case could be to ensure &lt;strong&gt;consistent analytics&lt;/strong&gt; results over time from a table that is modified with a high frequency or that  receives streaming inserts.
+In this case, we could configure the SQL query to always return results from a specific timestamp during a specific time frame. We could build a caching system to do that or we could use “FOR SYSTEM_TIME AS OF” with a specific point-in-time to “force” queries to always return results from a past table state and just change the value when we want the results from a different time.&lt;/p&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/277fe07f200ccac33f98ae4217740fa5.js?file=point_in_time_analytics.sql&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;Or for a more dynamic solution&lt;/p&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/277fe07f200ccac33f98ae4217740fa5.js?file=delayed_analytics.sql&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;Follow or contact me on Twitter for more stories about data, infrastructure, and automation.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Serverless S3 Access Logs Analytics using BigQuery</title>
