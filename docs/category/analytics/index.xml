@@ -95,81 +95,16 @@ Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to b
 &lt;p&gt;Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.&lt;/p&gt;
 &lt;h2 id=&#34;transform-raw-logs-into-tabular-format&#34;&gt;Transform raw logs into tabular format&lt;/h2&gt;
 &lt;p&gt;As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &amp;ldquo;\&amp;rdquo; instead of &amp;ldquo;&amp;quot; because we need to escape when defining the function.&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;CREATE OR REPLACE FUNCTION `PROJECT_ID.DATASET_ID.s3_log_parser`(text STRING)
-RETURNS STRUCT&amp;lt;bucket_owner STRING, bucket STRING, timestamp STRING, remote_ip STRING, requester STRING, request_id STRING, operation STRING, key STRING, request_uri STRING, http_status INT64, error_code STRING, bytes_sent INT64, object_size INT64, total_time INT64, turn_around_time INT64, referrer STRING, user_agent STRING, version_id STRING, host_id STRING, _error_message STRING, _s3_log_line STRING&amp;gt;
-LANGUAGE js
-AS &amp;quot;&amp;quot;&amp;quot;
-/*
-This regex follows the logformat specs at https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html
-Note that we need to use &#39;\&#39; instead of &#39;&#39; because BigQuery escaping rules and we also need to escape ‘\’ using ‘\\’. The function will be saved with a single ‘\’ but will need to be saved using ‘\\’ instead.
-*/
-var ACCESS_LOG_REGEXP = /(?:([a-z0-9]+)|-) (?:-|([\\w\\.\\-_]+)) (?:(\\[[^\\]]+\\])|-) (?:([\\d\\.]+)|-) (?:-|([\\w:\\/\\-_]+)) (?:([\\w.-_]+)|-) (?:([\\w\\.]+)|-) (?:-|([\\w0-9\\.\\-_\\/%\\*\\?\\[\\]]+)) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:(\\d+)|-) (?:([\\w]+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:([\\w]+)|-) (?:([\\w\\+\\/=]+)|-) (?:([\\w]+)|-) (?:([\\w-]+)|-) (?:([\\w-]+)|-) (?:([\\w-\\.]+)|-) (?:([\\w\\.]+)|-)/i;
-this._s3_log_line = text;
-var matches = null;
-// Catch error during regex
-try {
-  matches = text.match(ACCESS_LOG_REGEXP);
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/9560b606419a1ba1ac7235f079b4d802.js?file=s3_log_parser.js&#34;&gt;&lt;/script&gt;
 
-// Parse first tier fields, we want this field to be all present or get a failure with an error message.
-try {
-  this.bucket_owner = matches[1];
-  this.bucket = matches[2];
-  this.timestamp = matches[3];
-  this.remote_ip = matches[4];
-  this.requester = matches[5];
-  this.request_id = matches[6];
-  this.operation = matches[7];
-  this.key = matches[8];
-  this.request_uri = matches[9];
-  this.http_status = matches[10];
-  this.error_code = matches[11];
-  this.bytes_sent = matches[12];
-  this.object_size = matches[13];
-  this.total_time = matches[14];
-  this.turn_around_time = matches[15];
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  this._parse_result = JSON.stringify(matches);
-  return this;
-}
-
-// Parse additional fields
-try {
-  this.referrer = matches[16];
-  this.user_agent = matches[17];
-  this.version_id = matches[18];
-  this.host_id = matches[19];
-  } catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
-return this;
-&amp;quot;&amp;quot;&amp;quot;;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Here you can find the &lt;a href=&#34;https://gist.github.com/alepuccetti/544863656931199027c894b02497c2eb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GitHub gist&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;You can copy and paste the code above into the BigQuery UI to create the &lt;strong&gt;s3_log_parser&lt;/strong&gt; as a persistent UDF, just replace &lt;code&gt;PROJECT_ID&lt;/code&gt; and &lt;code&gt;DATASET_ID&lt;/code&gt; with valid values for your environment.&lt;/p&gt;
 &lt;p&gt;Now we have easy access to the data and the logic to transform it into tabular format, the following query will parse all the logs entry into the column defined in the UDF.&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  s3_log.* except(timestamp, _error_message, _s3_log_line),
-  parse_timestamp(&amp;quot;[%d/%b/%Y:%H:%M:%S %z]&amp;quot;, s3_log.timestamp) as timestamp
-from (
-  select
-    `PROJECT_ID.DATASET_ID.s3_log_parser`(text) as s3_log
-  from `PROJECT_ID.DATASET_ID.s3_raw_logs_external`
-)
-;
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/9560b606419a1ba1ac7235f079b4d802.js?file=parsed_s3_logs.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;Let’s copy and paste this query into the BigQuery UI and run it. If you have already data into the Cloud Storage bucket you will see the logs parsed out. Now click on &amp;ldquo;Save view&amp;rdquo;, choose a destination dataset and a name for the view (e.g. s3_logs_parsed). In this way, we can use the view as a source for our analytics reporting dashboards instead of always writing the query itself. Now try the following query, it should show the same results of the previous one.&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;Select
-*
-from PROJECT_ID.DATASET_ID.s3_logs_parsed
+  *
+from `PROJECT_ID.DATASET_ID.s3_logs_parsed`
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Now you have a serverless, fully-managed system to analyse your AWS S3 access logs into BigQuery using SQL and play with Google &lt;a href=&#34;https://datastudio.google.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Datastudio&lt;/a&gt; to build and share reporting dashboards.&lt;/p&gt;
 </description>

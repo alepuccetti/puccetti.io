@@ -5,12 +5,172 @@
     <link>https://alepuccetti.github.io/category/data-engineering/</link>
       <atom:link href="https://alepuccetti.github.io/category/data-engineering/index.xml" rel="self" type="application/rss+xml" />
     <description>Data Engineering</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Sun, 10 May 2020 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Sun, 07 Mar 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png</url>
       <title>Data Engineering</title>
       <link>https://alepuccetti.github.io/category/data-engineering/</link>
     </image>
+    
+    <item>
+      <title>BigQuery Authorized Views with Terraform</title>
+      <link>https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/</link>
+      <pubDate>Sun, 07 Mar 2021 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure &gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./bq_tf.png&#34; &gt;
+
+
+  &lt;img src=&#34;./bq_tf.png&#34; alt=&#34;BigQuery &amp;#43; Terraform&#34;  &gt;
+&lt;/a&gt;
+
+
+
+&lt;/figure&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-terraform&#34; data-lang=&#34;terraform&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;resource&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;google_bigquery_dataset&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;data_access&amp;#34;&lt;/span&gt; {
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;dataset_id&lt;/span&gt;                  = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;data_access&amp;#34;&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;frinedly_name&lt;/span&gt;               = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;data_access&amp;#34;&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;description&lt;/span&gt;                 = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;Here you can access all the data you subscribed to.&amp;#34;&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;location&lt;/span&gt;                    = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;EU&amp;#34;&lt;/span&gt;
+
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;labels&lt;/span&gt; = {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;env&lt;/span&gt; = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;production&amp;#34;&lt;/span&gt;
+  }&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/f606ffc6ac767056de9e147a11cb310d.js&#34;&gt;&lt;/script&gt;
+
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-terraform&#34; data-lang=&#34;terraform&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;resource&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;google_bigquery_table&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;view_name&amp;#34;&lt;/span&gt; {
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;project&lt;/span&gt;     = &lt;span style=&#34;color:#a6e22e&#34;&gt;google_bigquery_dataset&lt;/span&gt;.data&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;_&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;access&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;project&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;dataset_id&lt;/span&gt;  = &lt;span style=&#34;color:#a6e22e&#34;&gt;google_bigquery_dataset&lt;/span&gt;.data&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;_&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;access&lt;/span&gt;.data&lt;span style=&#34;color:#a6e22e&#34;&gt;set_id&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;table_id&lt;/span&gt;    = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;view_name&amp;#34;&lt;/span&gt;
+
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;view&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;query&lt;/span&gt;          = &lt;span style=&#34;color:#f92672&#34;&gt;&amp;lt;&amp;lt;EOF&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;SELECT
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;  *
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;FROM `source_project_id.source_dataset_id.source_table`
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;WHERE ...
+&lt;/span&gt;&lt;span style=&#34;color:#e6db74&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color:#f92672&#34;&gt;EOF&lt;/span&gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;use_legacy_sql&lt;/span&gt; = &lt;span style=&#34;color:#66d9ef&#34;&gt;false&lt;/span&gt;
+  }
+
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;depends_on&lt;/span&gt; = [
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;google_bigquery_dataset&lt;/span&gt;.data&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;_&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;access&lt;/span&gt;
+  ]
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;pre style=&#34;color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-terraform&#34; data-lang=&#34;terraform&#34;&gt;&lt;span style=&#34;color:#66d9ef&#34;&gt;resource&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;google_bigquery_dataset_access&amp;#34;&lt;/span&gt; &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;view_authorization&amp;#34;&lt;/span&gt; {
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;project&lt;/span&gt;    = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;source_project_id&amp;#34;&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;dataset_id&lt;/span&gt; = &lt;span style=&#34;color:#e6db74&#34;&gt;&amp;#34;source_dataset_id&amp;#34;&lt;/span&gt;
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;view&lt;/span&gt; {
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;project_id&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;google_bigquery_table&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;view_name&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;project&lt;/span&gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;dataset_id&lt;/span&gt; = &lt;span style=&#34;color:#a6e22e&#34;&gt;google_bigquery_table&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;view_name&lt;/span&gt;.data&lt;span style=&#34;color:#a6e22e&#34;&gt;set_id&lt;/span&gt;
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;table_id&lt;/span&gt;   = &lt;span style=&#34;color:#a6e22e&#34;&gt;google_bigquery_table&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;view_name&lt;/span&gt;.&lt;span style=&#34;color:#a6e22e&#34;&gt;table_id&lt;/span&gt;
+  }
+
+  &lt;span style=&#34;color:#a6e22e&#34;&gt;depends_on&lt;/span&gt; = [
+    &lt;span style=&#34;color:#a6e22e&#34;&gt;google_bigquery_dataset&lt;/span&gt;.data&lt;span style=&#34;color:#960050;background-color:#1e0010&#34;&gt;_&lt;/span&gt;&lt;span style=&#34;color:#a6e22e&#34;&gt;access&lt;/span&gt;
+  ]
+}&lt;/code&gt;&lt;/pre&gt;&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Real-Time data delivery at scale with BigQuery </title>
+      <link>https://alepuccetti.github.io/post/bigquery-real-time-data-delivery-at-scale/</link>
+      <pubDate>Sun, 07 Mar 2021 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-real-time-data-delivery-at-scale/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure &gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./&#34; &gt;
+
+
+  &lt;img src=&#34;./&#34; alt=&#34;delivery&#34;  &gt;
+&lt;/a&gt;
+
+
+
+&lt;/figure&gt;
+
+</description>
+    </item>
+    
+    <item>
+      <title>Time Travel with BigQuery</title>
+      <link>https://alepuccetti.github.io/post/bigquery-time-travel/</link>
+      <pubDate>Sun, 07 Mar 2021 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-time-travel/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure &gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./time_spiral.jpg&#34; &gt;
+
+
+  &lt;img src=&#34;./time_spiral.jpg&#34; alt=&#34;Time spiral&#34;  &gt;
+&lt;/a&gt;
+
+
+
+&lt;/figure&gt;
+
+</description>
+    </item>
     
     <item>
       <title>Serverless S3 Access Logs Analytics using BigQuery</title>
@@ -95,81 +255,16 @@ Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to b
 &lt;p&gt;Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.&lt;/p&gt;
 &lt;h2 id=&#34;transform-raw-logs-into-tabular-format&#34;&gt;Transform raw logs into tabular format&lt;/h2&gt;
 &lt;p&gt;As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &amp;ldquo;\&amp;rdquo; instead of &amp;ldquo;&amp;quot; because we need to escape when defining the function.&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;CREATE OR REPLACE FUNCTION `PROJECT_ID.DATASET_ID.s3_log_parser`(text STRING)
-RETURNS STRUCT&amp;lt;bucket_owner STRING, bucket STRING, timestamp STRING, remote_ip STRING, requester STRING, request_id STRING, operation STRING, key STRING, request_uri STRING, http_status INT64, error_code STRING, bytes_sent INT64, object_size INT64, total_time INT64, turn_around_time INT64, referrer STRING, user_agent STRING, version_id STRING, host_id STRING, _error_message STRING, _s3_log_line STRING&amp;gt;
-LANGUAGE js
-AS &amp;quot;&amp;quot;&amp;quot;
-/*
-This regex follows the logformat specs at https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html
-Note that we need to use &#39;\&#39; instead of &#39;&#39; because BigQuery escaping rules and we also need to escape ‘\’ using ‘\\’. The function will be saved with a single ‘\’ but will need to be saved using ‘\\’ instead.
-*/
-var ACCESS_LOG_REGEXP = /(?:([a-z0-9]+)|-) (?:-|([\\w\\.\\-_]+)) (?:(\\[[^\\]]+\\])|-) (?:([\\d\\.]+)|-) (?:-|([\\w:\\/\\-_]+)) (?:([\\w.-_]+)|-) (?:([\\w\\.]+)|-) (?:-|([\\w0-9\\.\\-_\\/%\\*\\?\\[\\]]+)) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:(\\d+)|-) (?:([\\w]+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:&amp;quot;-&amp;quot;|&amp;quot;([^&amp;quot;]+)&amp;quot;|-) (?:([\\w]+)|-) (?:([\\w\\+\\/=]+)|-) (?:([\\w]+)|-) (?:([\\w-]+)|-) (?:([\\w-]+)|-) (?:([\\w-\\.]+)|-) (?:([\\w\\.]+)|-)/i;
-this._s3_log_line = text;
-var matches = null;
-// Catch error during regex
-try {
-  matches = text.match(ACCESS_LOG_REGEXP);
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/9560b606419a1ba1ac7235f079b4d802.js?file=s3_log_parser.js&#34;&gt;&lt;/script&gt;
 
-// Parse first tier fields, we want this field to be all present or get a failure with an error message.
-try {
-  this.bucket_owner = matches[1];
-  this.bucket = matches[2];
-  this.timestamp = matches[3];
-  this.remote_ip = matches[4];
-  this.requester = matches[5];
-  this.request_id = matches[6];
-  this.operation = matches[7];
-  this.key = matches[8];
-  this.request_uri = matches[9];
-  this.http_status = matches[10];
-  this.error_code = matches[11];
-  this.bytes_sent = matches[12];
-  this.object_size = matches[13];
-  this.total_time = matches[14];
-  this.turn_around_time = matches[15];
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  this._parse_result = JSON.stringify(matches);
-  return this;
-}
-
-// Parse additional fields
-try {
-  this.referrer = matches[16];
-  this.user_agent = matches[17];
-  this.version_id = matches[18];
-  this.host_id = matches[19];
-  } catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
-return this;
-&amp;quot;&amp;quot;&amp;quot;;
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Here you can find the &lt;a href=&#34;https://gist.github.com/alepuccetti/544863656931199027c894b02497c2eb&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GitHub gist&lt;/a&gt;.&lt;/p&gt;
 &lt;p&gt;You can copy and paste the code above into the BigQuery UI to create the &lt;strong&gt;s3_log_parser&lt;/strong&gt; as a persistent UDF, just replace &lt;code&gt;PROJECT_ID&lt;/code&gt; and &lt;code&gt;DATASET_ID&lt;/code&gt; with valid values for your environment.&lt;/p&gt;
 &lt;p&gt;Now we have easy access to the data and the logic to transform it into tabular format, the following query will parse all the logs entry into the column defined in the UDF.&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  s3_log.* except(timestamp, _error_message, _s3_log_line),
-  parse_timestamp(&amp;quot;[%d/%b/%Y:%H:%M:%S %z]&amp;quot;, s3_log.timestamp) as timestamp
-from (
-  select
-    `PROJECT_ID.DATASET_ID.s3_log_parser`(text) as s3_log
-  from `PROJECT_ID.DATASET_ID.s3_raw_logs_external`
-)
-;
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/9560b606419a1ba1ac7235f079b4d802.js?file=parsed_s3_logs.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;Let’s copy and paste this query into the BigQuery UI and run it. If you have already data into the Cloud Storage bucket you will see the logs parsed out. Now click on &amp;ldquo;Save view&amp;rdquo;, choose a destination dataset and a name for the view (e.g. s3_logs_parsed). In this way, we can use the view as a source for our analytics reporting dashboards instead of always writing the query itself. Now try the following query, it should show the same results of the previous one.&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;Select
-*
-from PROJECT_ID.DATASET_ID.s3_logs_parsed
+  *
+from `PROJECT_ID.DATASET_ID.s3_logs_parsed`
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Now you have a serverless, fully-managed system to analyse your AWS S3 access logs into BigQuery using SQL and play with Google &lt;a href=&#34;https://datastudio.google.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Datastudio&lt;/a&gt; to build and share reporting dashboards.&lt;/p&gt;
 </description>
@@ -230,14 +325,8 @@ We will use one of the great public datasets curated by &lt;a href=&#34;https://
 We will use the &lt;em&gt;weather_gsod&lt;/em&gt; specifically the two tables &lt;em&gt;all&lt;/em&gt; and &lt;em&gt;all_geoclustered&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s say that we want the all-time minimum and maximum temperature within the Greater London area for each station.
 Our query will look like this:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all`
-where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
-group by 1
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/24eff1b26520bd842889d44042d24460.js?file=query.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;Results:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-csv&#34;&gt;name                min_temp  max_temp
 ST JAMES PARK       26.3      83.2
@@ -254,14 +343,8 @@ KEW-IN-LONDON       23.3      82.4
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;This query reads &lt;strong&gt;9.02GB&lt;/strong&gt; of data.
 Now let&amp;rsquo;s see how the same query perform on the clustered table:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all_geoclusterd`
-where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
-group by 1
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/24eff1b26520bd842889d44042d24460.js?file=query_geo_filtered.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;The result is obviously the same but, this time, BigQuery reads just &lt;strong&gt;98.97MB&lt;/strong&gt; of the data!!!
 So switching to the geo clustered table made this query almost &lt;strong&gt;100 times&lt;/strong&gt; cheaper.
 Do you want to try other locations and test the differences yourself? You can use Huq Industries &lt;a href=&#34;https://gismap.huq.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GisMap tool&lt;/a&gt; to quickly draw and export polygons in various formats.&lt;/p&gt;
@@ -366,14 +449,8 @@ Thus, your queries will run faster and, because they are reading less data, they
 At the time of table creation, you can specify which column is going to be used for partitioning,
 otherwise, you can set up the partitioning on &lt;a href=&#34;https://cloud.google.com/bigquery/docs/creating-partitioned-tables&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;ingestion time&lt;/a&gt;.
 Since you can query this table in the same exact way of those that are not partitioned, you won&amp;rsquo;t have to change a line of your existing queries.&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  day,
-  count(*)
-from full_history
-where sampling_date &amp;gt;= &amp;quot;2019–08–05&amp;quot;
-and sampling_date &amp;lt; &amp;quot;2019–08–06&amp;quot;
-group by 1
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=query_partition.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;Assuming that &amp;ldquo;&lt;strong&gt;sampling_date&lt;/strong&gt;&amp;rdquo; is the partitioning column,
 now BigQuery can use the specified values in the &amp;ldquo;where clause&amp;rdquo; to read only data that belong to the right partitions.&lt;/p&gt;
 &lt;h4 id=&#34;bonus-nugget&#34;&gt;Bonus nugget&lt;/h4&gt;
@@ -406,31 +483,17 @@ A single row may look like this:&lt;/p&gt;
 ...
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The following query counts, broken-down per year, all the page views for the Italian wiki from 2015–01–01.&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  _table_suffix as year,
-  wiki,
-  sum(views) / pow(10, 9) as Views
-from `fh-bigquery.wikipedia_v3.pageviews_*`
-where wiki = &#39;it&#39;and datehour &amp;gt;= &#39;2015–01–01&#39;
-group by 1,2
-order by 1 asc
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=IT_query_cluster.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;If you write this query in BigQuery UI, it will estimate a data scanning of 4.5 TB.
 However, if you actually run it, the final scanned data will be of just 160 GB.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;How is this possible?&lt;/em&gt;&lt;/p&gt;
 &lt;p&gt;When BigQuery reads only read rows belonging to the cluster that contains the data for the Italian wiki while discarding everything else.&lt;/p&gt;
 &lt;p&gt;&lt;em&gt;Why is the columns order so important in clustering?&lt;/em&gt;&lt;/p&gt;
-&lt;p&gt;It is important because BigQuery will organise the data hierarchically according to the column order that is specified when the table is created.&lt;/p&gt;
+&lt;p&gt;It is important because BigQuery will organize the data hierarchically according to the column order that is specified when the table is created.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s use the following example:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;select
-  wiki,
-  sum(views) / pow(10, 9) as Views
-from `fh-bigquery.wikipedia_v3.pageviews_2019`
-where title = &#39;Pizza&#39;
-and datehour &amp;gt;= &#39;2019–01–01&#39;
-group by 1
-order by 1 asc
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=pizza_query_cluster.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;This query needs to access all the &amp;ldquo;wiki&amp;rdquo; clusters and then it can use the &amp;ldquo;title&amp;rdquo; value to skip the not matching clusters.
 This results in scanning a lot more data than if the clustering columns were in the opposite order &amp;ldquo;&lt;strong&gt;title&lt;/strong&gt;&amp;rdquo;, &amp;ldquo;&lt;strong&gt;wiki&lt;/strong&gt;&amp;rdquo;.
 At the time of writing, the query above estimated a scanning cost of 1.4 TB but it actually scanned only 875.6 GB of data.
@@ -444,15 +507,8 @@ Let&amp;rsquo;s now invert the clustering columns order putting first &amp;ldquo
 &lt;p&gt;Running the &amp;ldquo;Pizza&amp;rdquo; query on our new table &amp;ldquo;&lt;strong&gt;my_project_id:dataset_us.wikipedia_2019&lt;/strong&gt;&amp;rdquo; should be much cheaper.
 In fact, while the estimation was still of 1.4 TB, the actual data read was just of 26.3 GB, that is 33 times less.&lt;/p&gt;
 &lt;p&gt;As final test let&amp;rsquo;s try filtering on the &amp;ldquo;&lt;strong&gt;wiki&lt;/strong&gt;&amp;rdquo; column:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  wiki,
-  sum(views) / pow(10, 9) as Views_B
-from `my_project_id:dataset_us.wikipedia_2019`
-where wiki = &#39;it&#39; and title is not null
-and datehour &amp;gt;= &#39;2019–01–01&#39;
-group by 1
-order by 1 asc
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=IT_query_cluster_after_re_cluster.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;The data read estimation is always the same but now the actually data read jumped to 1.4 TB (the entire table)
 whereas, in the first example, the actually data read was just of 160 GB.&lt;/p&gt;
 &lt;p&gt;&lt;strong&gt;Note&lt;/strong&gt;: Since BigQuery uses a columnar store, &amp;ldquo;&lt;strong&gt;title is not null&lt;/strong&gt;&amp;rdquo; ensures that we refer always to the same number of columns in every query.
@@ -507,25 +563,12 @@ For example, consider you have a collection of tables like:&lt;/p&gt;
 ...
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;The following query will return the count per day per country of events of type &lt;em&gt;&amp;ldquo;submit&amp;rdquo;&lt;/em&gt; in our dataset.&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  _table_suffix as country,
-  day,
-  count(*)
-from events_*
-where type = &amp;quot;submit&amp;quot;
-group by 1,2
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;You can also filter out matched tables using &lt;em&gt;&amp;quot;_table_suffix&amp;rdquo;&lt;/em&gt; in the where clause.
 For example, if you are only interested in Germany, France, and Japan just run the following:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  _table_suffix as country,
-  day,
-  count(*)
-from events_*
-where type = &amp;quot;submit&amp;quot;
-and _table_suffix in (&amp;quot;DE&amp;quot;, &amp;quot;FR&amp;quot;, &amp;quot;JP&amp;quot;)
-group by 1,2
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards_filtered.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;What I personally like the most of using wildcards is that it enables me to design better, simpler,
 and more generic analytics queries as well as ETL jobs.
 The aim of this post was to help you improve your code quality and your productivity.&lt;/p&gt;
