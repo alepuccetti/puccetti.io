@@ -47,10 +47,10 @@
   }
 
   // ns-params:@params
-  var wcDarkLightEnabled = true;
+  var wcDarkLightEnabled = false;
   var wcIsSiteThemeDark = false;
 
-  // js/wowchemy-init.js
+  // <stdin>
   window.wc = {
     darkLightEnabled: wcDarkLightEnabled,
     isSiteThemeDark: wcIsSiteThemeDark

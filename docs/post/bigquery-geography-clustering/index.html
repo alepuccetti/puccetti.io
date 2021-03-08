@@ -240,7 +240,7 @@
   
   
   
-  <link rel="stylesheet" href="/css/wowchemy.min.bc14b2ec30144da16d150b1c5777f483.css">
+  <link rel="stylesheet" href="/css/wowchemy.min.16a8b3e47a199a3d0cbe9ea849f02320.css">
 
   
 
@@ -666,23 +666,6 @@
 
       
       
-      <li class="nav-item dropdown theme-dropdown">
-        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
-          <i class="fas fa-moon" aria-hidden="true"></i>
-        </a>
-        <div class="dropdown-menu">
-          <a href="#" class="dropdown-item js-set-theme-light">
-            <span>Light</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-dark">
-            <span>Dark</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-auto">
-            <span>Automatic</span>
-          </a>
-        </div>
-      </li>
-      
 
       
 
@@ -848,14 +831,8 @@ We will use one of the great public datasets curated by <a href="https://twitter
 We will use the <em>weather_gsod</em> specifically the two tables <em>all</em> and <em>all_geoclustered</em>.</p>
 <p>Let&rsquo;s say that we want the all-time minimum and maximum temperature within the Greater London area for each station.
 Our query will look like this:</p>
-<pre><code class="language-sql">select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all`
-where st_within(point_gis, st_geogfromtext('POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))'))
-group by 1
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/24eff1b26520bd842889d44042d24460.js?file=query.sql"></script>
+
 <p>Results:</p>
 <pre><code class="language-csv">name                min_temp  max_temp
 ST JAMES PARK       26.3      83.2
@@ -872,14 +849,8 @@ KEW-IN-LONDON       23.3      82.4
 </code></pre>
 <p>This query reads <strong>9.02GB</strong> of data.
 Now let&rsquo;s see how the same query perform on the clustered table:</p>
-<pre><code class="language-sql">select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all_geoclusterd`
-where st_within(point_gis, st_geogfromtext('POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))'))
-group by 1
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/24eff1b26520bd842889d44042d24460.js?file=query_geo_filtered.sql"></script>
+
 <p>The result is obviously the same but, this time, BigQuery reads just <strong>98.97MB</strong> of the data!!!
 So switching to the geo clustered table made this query almost <strong>100 times</strong> cheaper.
 Do you want to try other locations and test the differences yourself? You can use Huq Industries <a href="https://gismap.huq.io" target="_blank" rel="noopener">GisMap tool</a> to quickly draw and export polygons in various formats.</p>
@@ -1186,15 +1157,15 @@ Do you want to try other locations and test the differences yourself? You can us
     <h3>Related</h3>
     <ul>
       
+      <li><a href="/post/bigquery-authorized-views-with-terraform/">BigQuery Authorized Views with Terraform</a></li>
+      
+      <li><a href="/post/bigquery-real-time-data-delivery-at-scale/">Real-Time data delivery at scale with BigQuery </a></li>
+      
+      <li><a href="/post/bigquery-time-travel/">Time Travel with BigQuery</a></li>
+      
       <li><a href="/post/serverless-s3-access-logs-analytics-with-bigquery/">Serverless S3 Access Logs Analytics using BigQuery</a></li>
       
       <li><a href="/post/bigquery-partitioning-clustering/">BigQuery Partitioning &amp; Clustering</a></li>
-      
-      <li><a href="/post/bigquery-wildcards/">BigQuery Wildcards</a></li>
-      
-      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
-      
-      <li><a href="/post/composer-short-living-tasks/">Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></li>
       
     </ul>
   </div>
@@ -1291,11 +1262,11 @@ Do you want to try other locations and test the differences yourself? You can us
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
         
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
+        
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/python.min.js"></script>
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/sql.min.js"></script>
-        
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
         
       
 
@@ -1382,7 +1353,7 @@ Do you want to try other locations and test the differences yourself? You can us
     
     
     
-    <script src="/js/wowchemy.min.d0d321ad6c45c08297f04e4ff03367d3.js"></script>
+    <script src="/js/wowchemy.min.8815837d53cda320254d3445b2438857.js"></script>
 
     
 

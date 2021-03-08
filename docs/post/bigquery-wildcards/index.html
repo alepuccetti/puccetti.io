@@ -240,7 +240,7 @@
   
   
   
-  <link rel="stylesheet" href="/css/wowchemy.min.bc14b2ec30144da16d150b1c5777f483.css">
+  <link rel="stylesheet" href="/css/wowchemy.min.16a8b3e47a199a3d0cbe9ea849f02320.css">
 
   
 
@@ -666,23 +666,6 @@
 
       
       
-      <li class="nav-item dropdown theme-dropdown">
-        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
-          <i class="fas fa-moon" aria-hidden="true"></i>
-        </a>
-        <div class="dropdown-menu">
-          <a href="#" class="dropdown-item js-set-theme-light">
-            <span>Light</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-dark">
-            <span>Dark</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-auto">
-            <span>Automatic</span>
-          </a>
-        </div>
-      </li>
-      
 
       
 
@@ -836,25 +819,12 @@ For example, consider you have a collection of tables like:</p>
 ...
 </code></pre>
 <p>The following query will return the count per day per country of events of type <em>&ldquo;submit&rdquo;</em> in our dataset.</p>
-<pre><code class="language-sql">select
-  _table_suffix as country,
-  day,
-  count(*)
-from events_*
-where type = &quot;submit&quot;
-group by 1,2
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards.sql"></script>
+
 <p>You can also filter out matched tables using <em>&quot;_table_suffix&rdquo;</em> in the where clause.
 For example, if you are only interested in Germany, France, and Japan just run the following:</p>
-<pre><code class="language-sql">select
-  _table_suffix as country,
-  day,
-  count(*)
-from events_*
-where type = &quot;submit&quot;
-and _table_suffix in (&quot;DE&quot;, &quot;FR&quot;, &quot;JP&quot;)
-group by 1,2
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards_filtered.sql"></script>
+
 <p>What I personally like the most of using wildcards is that it enables me to design better, simpler,
 and more generic analytics queries as well as ETL jobs.
 The aim of this post was to help you improve your code quality and your productivity.</p>
@@ -1126,15 +1096,15 @@ Happy query with BigQuery!!!</p>
     <h3>Related</h3>
     <ul>
       
+      <li><a href="/post/bigquery-authorized-views-with-terraform/">BigQuery Authorized Views with Terraform</a></li>
+      
+      <li><a href="/post/bigquery-real-time-data-delivery-at-scale/">Real-Time data delivery at scale with BigQuery </a></li>
+      
+      <li><a href="/post/bigquery-time-travel/">Time Travel with BigQuery</a></li>
+      
       <li><a href="/post/serverless-s3-access-logs-analytics-with-bigquery/">Serverless S3 Access Logs Analytics using BigQuery</a></li>
       
       <li><a href="/post/bigquery-geography-clustering/">BigQuery Geography Clustering</a></li>
-      
-      <li><a href="/post/bigquery-partitioning-clustering/">BigQuery Partitioning &amp; Clustering</a></li>
-      
-      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
-      
-      <li><a href="/post/composer-short-living-tasks/">Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></li>
       
     </ul>
   </div>
@@ -1231,11 +1201,11 @@ Happy query with BigQuery!!!</p>
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
         
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
+        
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/python.min.js"></script>
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/sql.min.js"></script>
-        
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
         
       
 
@@ -1322,7 +1292,7 @@ Happy query with BigQuery!!!</p>
     
     
     
-    <script src="/js/wowchemy.min.d0d321ad6c45c08297f04e4ff03367d3.js"></script>
+    <script src="/js/wowchemy.min.8815837d53cda320254d3445b2438857.js"></script>
 
     
 

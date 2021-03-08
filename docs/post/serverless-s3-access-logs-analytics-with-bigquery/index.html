@@ -240,7 +240,7 @@
   
   
   
-  <link rel="stylesheet" href="/css/wowchemy.min.bc14b2ec30144da16d150b1c5777f483.css">
+  <link rel="stylesheet" href="/css/wowchemy.min.16a8b3e47a199a3d0cbe9ea849f02320.css">
 
   
 
@@ -666,23 +666,6 @@
 
       
       
-      <li class="nav-item dropdown theme-dropdown">
-        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
-          <i class="fas fa-moon" aria-hidden="true"></i>
-        </a>
-        <div class="dropdown-menu">
-          <a href="#" class="dropdown-item js-set-theme-light">
-            <span>Light</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-dark">
-            <span>Dark</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-auto">
-            <span>Automatic</span>
-          </a>
-        </div>
-      </li>
-      
 
       
 
@@ -756,7 +739,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    8 min read
+    6 min read
   </span>
   
 
@@ -876,81 +859,16 @@ Click on &ldquo;Advanced options&rdquo; and set the field delimiter to be &ldquo
 <p>Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.</p>
 <h2 id="transform-raw-logs-into-tabular-format">Transform raw logs into tabular format</h2>
 <p>As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &ldquo;\&rdquo; instead of &ldquo;&quot; because we need to escape when defining the function.</p>
-<pre><code class="language-javascript">CREATE OR REPLACE FUNCTION `PROJECT_ID.DATASET_ID.s3_log_parser`(text STRING)
-RETURNS STRUCT&lt;bucket_owner STRING, bucket STRING, timestamp STRING, remote_ip STRING, requester STRING, request_id STRING, operation STRING, key STRING, request_uri STRING, http_status INT64, error_code STRING, bytes_sent INT64, object_size INT64, total_time INT64, turn_around_time INT64, referrer STRING, user_agent STRING, version_id STRING, host_id STRING, _error_message STRING, _s3_log_line STRING&gt;
-LANGUAGE js
-AS &quot;&quot;&quot;
-/*
-This regex follows the logformat specs at https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html
-Note that we need to use '\' instead of '' because BigQuery escaping rules and we also need to escape ‘\’ using ‘\\’. The function will be saved with a single ‘\’ but will need to be saved using ‘\\’ instead.
-*/
-var ACCESS_LOG_REGEXP = /(?:([a-z0-9]+)|-) (?:-|([\\w\\.\\-_]+)) (?:(\\[[^\\]]+\\])|-) (?:([\\d\\.]+)|-) (?:-|([\\w:\\/\\-_]+)) (?:([\\w.-_]+)|-) (?:([\\w\\.]+)|-) (?:-|([\\w0-9\\.\\-_\\/%\\*\\?\\[\\]]+)) (?:&quot;-&quot;|&quot;([^&quot;]+)&quot;|-) (?:(\\d+)|-) (?:([\\w]+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:&quot;-&quot;|&quot;([^&quot;]+)&quot;|-) (?:&quot;-&quot;|&quot;([^&quot;]+)&quot;|-) (?:([\\w]+)|-) (?:([\\w\\+\\/=]+)|-) (?:([\\w]+)|-) (?:([\\w-]+)|-) (?:([\\w-]+)|-) (?:([\\w-\\.]+)|-) (?:([\\w\\.]+)|-)/i;
-this._s3_log_line = text;
-var matches = null;
-// Catch error during regex
-try {
-  matches = text.match(ACCESS_LOG_REGEXP);
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/9560b606419a1ba1ac7235f079b4d802.js?file=s3_log_parser.js"></script>
 
-// Parse first tier fields, we want this field to be all present or get a failure with an error message.
-try {
-  this.bucket_owner = matches[1];
-  this.bucket = matches[2];
-  this.timestamp = matches[3];
-  this.remote_ip = matches[4];
-  this.requester = matches[5];
-  this.request_id = matches[6];
-  this.operation = matches[7];
-  this.key = matches[8];
-  this.request_uri = matches[9];
-  this.http_status = matches[10];
-  this.error_code = matches[11];
-  this.bytes_sent = matches[12];
-  this.object_size = matches[13];
-  this.total_time = matches[14];
-  this.turn_around_time = matches[15];
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  this._parse_result = JSON.stringify(matches);
-  return this;
-}
-
-// Parse additional fields
-try {
-  this.referrer = matches[16];
-  this.user_agent = matches[17];
-  this.version_id = matches[18];
-  this.host_id = matches[19];
-  } catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
-return this;
-&quot;&quot;&quot;;
-</code></pre>
-<p>Here you can find the <a href="https://gist.github.com/alepuccetti/544863656931199027c894b02497c2eb" target="_blank" rel="noopener">GitHub gist</a>.</p>
 <p>You can copy and paste the code above into the BigQuery UI to create the <strong>s3_log_parser</strong> as a persistent UDF, just replace <code>PROJECT_ID</code> and <code>DATASET_ID</code> with valid values for your environment.</p>
 <p>Now we have easy access to the data and the logic to transform it into tabular format, the following query will parse all the logs entry into the column defined in the UDF.</p>
-<pre><code class="language-sql">select
-  s3_log.* except(timestamp, _error_message, _s3_log_line),
-  parse_timestamp(&quot;[%d/%b/%Y:%H:%M:%S %z]&quot;, s3_log.timestamp) as timestamp
-from (
-  select
-    `PROJECT_ID.DATASET_ID.s3_log_parser`(text) as s3_log
-  from `PROJECT_ID.DATASET_ID.s3_raw_logs_external`
-)
-;
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/9560b606419a1ba1ac7235f079b4d802.js?file=parsed_s3_logs.sql"></script>
+
 <p>Let’s copy and paste this query into the BigQuery UI and run it. If you have already data into the Cloud Storage bucket you will see the logs parsed out. Now click on &ldquo;Save view&rdquo;, choose a destination dataset and a name for the view (e.g. s3_logs_parsed). In this way, we can use the view as a source for our analytics reporting dashboards instead of always writing the query itself. Now try the following query, it should show the same results of the previous one.</p>
 <pre><code class="language-sql">Select
-*
-from PROJECT_ID.DATASET_ID.s3_logs_parsed
+  *
+from `PROJECT_ID.DATASET_ID.s3_logs_parsed`
 </code></pre>
 <p>Now you have a serverless, fully-managed system to analyse your AWS S3 access logs into BigQuery using SQL and play with Google <a href="https://datastudio.google.com/" target="_blank" rel="noopener">Datastudio</a> to build and share reporting dashboards.</p>
 
@@ -1219,15 +1137,15 @@ from PROJECT_ID.DATASET_ID.s3_logs_parsed
     <h3>Related</h3>
     <ul>
       
+      <li><a href="/post/bigquery-authorized-views-with-terraform/">BigQuery Authorized Views with Terraform</a></li>
+      
+      <li><a href="/post/bigquery-real-time-data-delivery-at-scale/">Real-Time data delivery at scale with BigQuery </a></li>
+      
+      <li><a href="/post/bigquery-time-travel/">Time Travel with BigQuery</a></li>
+      
       <li><a href="/post/bigquery-geography-clustering/">BigQuery Geography Clustering</a></li>
       
       <li><a href="/post/bigquery-partitioning-clustering/">BigQuery Partitioning &amp; Clustering</a></li>
-      
-      <li><a href="/post/bigquery-wildcards/">BigQuery Wildcards</a></li>
-      
-      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
-      
-      <li><a href="/post/composer-short-living-tasks/">Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></li>
       
     </ul>
   </div>
@@ -1324,11 +1242,11 @@ from PROJECT_ID.DATASET_ID.s3_logs_parsed
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
         
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
+        
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/python.min.js"></script>
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/sql.min.js"></script>
-        
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
         
       
 
@@ -1415,7 +1333,7 @@ from PROJECT_ID.DATASET_ID.s3_logs_parsed
     
     
     
-    <script src="/js/wowchemy.min.d0d321ad6c45c08297f04e4ff03367d3.js"></script>
+    <script src="/js/wowchemy.min.8815837d53cda320254d3445b2438857.js"></script>
 
     
 

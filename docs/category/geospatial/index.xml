@@ -67,14 +67,8 @@ We will use one of the great public datasets curated by &lt;a href=&#34;https://
 We will use the &lt;em&gt;weather_gsod&lt;/em&gt; specifically the two tables &lt;em&gt;all&lt;/em&gt; and &lt;em&gt;all_geoclustered&lt;/em&gt;.&lt;/p&gt;
 &lt;p&gt;Let&amp;rsquo;s say that we want the all-time minimum and maximum temperature within the Greater London area for each station.
 Our query will look like this:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all`
-where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
-group by 1
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/24eff1b26520bd842889d44042d24460.js?file=query.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;Results:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-csv&#34;&gt;name                min_temp  max_temp
 ST JAMES PARK       26.3      83.2
@@ -91,14 +85,8 @@ KEW-IN-LONDON       23.3      82.4
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;This query reads &lt;strong&gt;9.02GB&lt;/strong&gt; of data.
 Now let&amp;rsquo;s see how the same query perform on the clustered table:&lt;/p&gt;
-&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all_geoclusterd`
-where st_within(point_gis, st_geogfromtext(&#39;POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))&#39;))
-group by 1
-&lt;/code&gt;&lt;/pre&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/24eff1b26520bd842889d44042d24460.js?file=query_geo_filtered.sql&#34;&gt;&lt;/script&gt;
+
 &lt;p&gt;The result is obviously the same but, this time, BigQuery reads just &lt;strong&gt;98.97MB&lt;/strong&gt; of the data!!!
 So switching to the geo clustered table made this query almost &lt;strong&gt;100 times&lt;/strong&gt; cheaper.
 Do you want to try other locations and test the differences yourself? You can use Huq Industries &lt;a href=&#34;https://gismap.huq.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;GisMap tool&lt;/a&gt; to quickly draw and export polygons in various formats.&lt;/p&gt;

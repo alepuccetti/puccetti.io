@@ -40,15 +40,7 @@ At the time of table creation, you can specify which column is going to be used 
 otherwise, you can set up the partitioning on [ingestion time](https://cloud.google.com/bigquery/docs/creating-partitioned-tables).
 Since you can query this table in the same exact way of those that are not partitioned, you won't have to change a line of your existing queries.
 
-```sql
-select
-  day,
-  count(*)
-from full_history
-where sampling_date >= "2019–08–05"
-and sampling_date < "2019–08–06"
-group by 1
-```
+{{< gist alepuccetti 859d196d00588efcfb08724218cfabaf "query_partition.sql">}}
 
 Assuming that "**sampling_date**" is the partitioning column,
 now BigQuery can use the specified values in the "where clause" to read only data that belong to the right partitions.
@@ -98,16 +90,7 @@ datehour,                    language,     title,   views
 
 The following query counts, broken-down per year, all the page views for the Italian wiki from 2015–01–01.
 
-```sql
-select
-  _table_suffix as year,
-  wiki,
-  sum(views) / pow(10, 9) as Views
-from `fh-bigquery.wikipedia_v3.pageviews_*`
-where wiki = 'it'and datehour >= '2015–01–01'
-group by 1,2
-order by 1 asc
-```
+{{< gist alepuccetti 859d196d00588efcfb08724218cfabaf "IT_query_cluster.sql">}}
 
 If you write this query in BigQuery UI, it will estimate a data scanning of 4.5 TB.
 However, if you actually run it, the final scanned data will be of just 160 GB.
@@ -118,20 +101,11 @@ When BigQuery reads only read rows belonging to the cluster that contains the da
 
 *Why is the columns order so important in clustering?*
 
-It is important because BigQuery will organise the data hierarchically according to the column order that is specified when the table is created.
+It is important because BigQuery will organize the data hierarchically according to the column order that is specified when the table is created.
 
 Let's use the following example:
 
-```bash
-select
-  wiki,
-  sum(views) / pow(10, 9) as Views
-from `fh-bigquery.wikipedia_v3.pageviews_2019`
-where title = 'Pizza'
-and datehour >= '2019–01–01'
-group by 1
-order by 1 asc
-```
+{{< gist alepuccetti 859d196d00588efcfb08724218cfabaf "pizza_query_cluster.sql">}}
 
 This query needs to access all the "wiki" clusters and then it can use the "title" value to skip the not matching clusters.
 This results in scanning a lot more data than if the clustering columns were in the opposite order "**title**", "**wiki**".
@@ -151,16 +125,7 @@ In fact, while the estimation was still of 1.4 TB, the actual data read was just
 
 As final test let's try filtering on the "**wiki**" column:
 
-```sql
-select
-  wiki,
-  sum(views) / pow(10, 9) as Views_B
-from `my_project_id:dataset_us.wikipedia_2019`
-where wiki = 'it' and title is not null
-and datehour >= '2019–01–01'
-group by 1
-order by 1 asc
-```
+{{< gist alepuccetti 859d196d00588efcfb08724218cfabaf "IT_query_cluster_after_re_cluster.sql">}}
 
 The data read estimation is always the same but now the actually data read jumped to 1.4 TB (the entire table)
 whereas, in the first example, the actually data read was just of 160 GB.

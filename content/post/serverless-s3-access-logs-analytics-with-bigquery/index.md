@@ -27,6 +27,7 @@ aws s3api create-bucket --bucket MY_BUCKET_EU-WEST-1 --region eu-west-1
 ```
 
 Now we need to set up S3 access logs delivery. First we grant the AWS LogDelivery group the relevant permissions to our destination bucket:
+
 ```bash
 aws s3api put-bucket-acl --bucket MY_BUCKET_EU-WEST-1 --grand-write URI=http://acs.amazonaws.com/groups/s3/LogDelivery --grant-read-acp URI=http://acs.amazonaws.com/groups/s3/LogDelivery
 ```
@@ -51,6 +52,7 @@ It’s worthy to remember that logs are delivered on a [best effort basis](https
 ## Transfer logs to Google cloud Platform
 In our scenario, we will transfer the data first into Cloud Storage using the [Data Transfer](https://cloud.google.com/storage-transfer/docs/create-manage-transfer-console#amazon-s3) service and then using [BigQuery external table](https://cloud.google.com/bigquery/external-table-definition) to run queries on them. Another possible solution would be to use [S3 to BigQuery](https://cloud.google.com/bigquery-transfer/docs/s3-transfer) data transfer service to directly transfer the data into BigQuery.
 The Data Transfer service is fully managed, so you just need to configure it and you won’t need to provision and monitor any infrastructure. Transfers are scheduled to run every 24 hours, if you need a different interval you will have to implement the data transfer yourself instead of using this service. Before setting up the transfer we need a destination bucket on Cloud Storage. Let’s create a multi-regional bucket in Europe.
+
 ```bash
 gsutil mb -l EU gs://MY_AWS_S3_ACCESS_LOGS_MIRROR/
 ```
@@ -76,89 +78,20 @@ Now we have a table into BigQuery where the source data is in Cloud Storage, thi
 ## Transform raw logs into tabular format
 As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use "\\" instead of "\" because we need to escape when defining the function.
 
-
-```javascript
-CREATE OR REPLACE FUNCTION `PROJECT_ID.DATASET_ID.s3_log_parser`(text STRING)
-RETURNS STRUCT<bucket_owner STRING, bucket STRING, timestamp STRING, remote_ip STRING, requester STRING, request_id STRING, operation STRING, key STRING, request_uri STRING, http_status INT64, error_code STRING, bytes_sent INT64, object_size INT64, total_time INT64, turn_around_time INT64, referrer STRING, user_agent STRING, version_id STRING, host_id STRING, _error_message STRING, _s3_log_line STRING>
-LANGUAGE js
-AS """
-/*
-This regex follows the logformat specs at https://docs.aws.amazon.com/AmazonS3/latest/dev/LogFormat.html
-Note that we need to use '\' instead of '' because BigQuery escaping rules and we also need to escape ‘\’ using ‘\\’. The function will be saved with a single ‘\’ but will need to be saved using ‘\\’ instead.
-*/
-var ACCESS_LOG_REGEXP = /(?:([a-z0-9]+)|-) (?:-|([\\w\\.\\-_]+)) (?:(\\[[^\\]]+\\])|-) (?:([\\d\\.]+)|-) (?:-|([\\w:\\/\\-_]+)) (?:([\\w.-_]+)|-) (?:([\\w\\.]+)|-) (?:-|([\\w0-9\\.\\-_\\/%\\*\\?\\[\\]]+)) (?:"-"|"([^"]+)"|-) (?:(\\d+)|-) (?:([\\w]+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:(\\d+)|-) (?:"-"|"([^"]+)"|-) (?:"-"|"([^"]+)"|-) (?:([\\w]+)|-) (?:([\\w\\+\\/=]+)|-) (?:([\\w]+)|-) (?:([\\w-]+)|-) (?:([\\w-]+)|-) (?:([\\w-\\.]+)|-) (?:([\\w\\.]+)|-)/i;
-this._s3_log_line = text;
-var matches = null;
-// Catch error during regex
-try {
-  matches = text.match(ACCESS_LOG_REGEXP);
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
-
-// Parse first tier fields, we want this field to be all present or get a failure with an error message.
-try {
-  this.bucket_owner = matches[1];
-  this.bucket = matches[2];
-  this.timestamp = matches[3];
-  this.remote_ip = matches[4];
-  this.requester = matches[5];
-  this.request_id = matches[6];
-  this.operation = matches[7];
-  this.key = matches[8];
-  this.request_uri = matches[9];
-  this.http_status = matches[10];
-  this.error_code = matches[11];
-  this.bytes_sent = matches[12];
-  this.object_size = matches[13];
-  this.total_time = matches[14];
-  this.turn_around_time = matches[15];
-} catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  this._parse_result = JSON.stringify(matches);
-  return this;
-}
-
-// Parse additional fields
-try {
-  this.referrer = matches[16];
-  this.user_agent = matches[17];
-  this.version_id = matches[18];
-  this.host_id = matches[19];
-  } catch(err) {
-  this._error_message = err.message;
-  this._s3_log_line = text;
-  return this;
-}
-return this;
-""";
-```
-Here you can find the [GitHub gist](https://gist.github.com/alepuccetti/544863656931199027c894b02497c2eb).
+{{< gist alepuccetti 9560b606419a1ba1ac7235f079b4d802 "s3_log_parser.js" >}}
 
 You can copy and paste the code above into the BigQuery UI to create the **s3_log_parser** as a persistent UDF, just replace `PROJECT_ID` and `DATASET_ID` with valid values for your environment.
 
 Now we have easy access to the data and the logic to transform it into tabular format, the following query will parse all the logs entry into the column defined in the UDF.
-```sql
-select
-  s3_log.* except(timestamp, _error_message, _s3_log_line),
-  parse_timestamp("[%d/%b/%Y:%H:%M:%S %z]", s3_log.timestamp) as timestamp
-from (
-  select
-    `PROJECT_ID.DATASET_ID.s3_log_parser`(text) as s3_log
-  from `PROJECT_ID.DATASET_ID.s3_raw_logs_external`
-)
-;
-```
+
+{{< gist alepuccetti 9560b606419a1ba1ac7235f079b4d802 "parsed_s3_logs.sql" >}}
+
 Let’s copy and paste this query into the BigQuery UI and run it. If you have already data into the Cloud Storage bucket you will see the logs parsed out. Now click on "Save view", choose a destination dataset and a name for the view (e.g. s3_logs_parsed). In this way, we can use the view as a source for our analytics reporting dashboards instead of always writing the query itself. Now try the following query, it should show the same results of the previous one.
 
 ```sql
 Select
-*
-from PROJECT_ID.DATASET_ID.s3_logs_parsed
+  *
+from `PROJECT_ID.DATASET_ID.s3_logs_parsed`
 ```
 
 Now you have a serverless, fully-managed system to analyse your AWS S3 access logs into BigQuery using SQL and play with Google [Datastudio](https://datastudio.google.com/) to build and share reporting dashboards.
-

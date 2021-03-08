@@ -34,10 +34,10 @@
   
     
   
-  <meta name="description" content="Head of Automation&lt;br&gt;Data Platform Engineer">
+  <meta name="description" content="Define and manage BigQuery authorized views in Terraform.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/tag/automation/">
+  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/">
 
   
 
@@ -294,14 +294,12 @@
   
 
   
-  <link rel="alternate" href="/tag/automation/index.xml" type="application/rss+xml" title="Alessandro Puccetti">
-  
 
   <link rel="manifest" href="/index.webmanifest">
   <link rel="icon" type="image/png" href="/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_32x32_fill_lanczos_center_2.png">
   <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_192x192_fill_lanczos_center_2.png">
 
-  <link rel="canonical" href="https://alepuccetti.github.io/tag/automation/">
+  <link rel="canonical" href="https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/">
 
   
   
@@ -320,18 +318,58 @@
   <meta property="twitter:creator" content="@alepuccetti">
   
   <meta property="og:site_name" content="Alessandro Puccetti">
-  <meta property="og:url" content="https://alepuccetti.github.io/tag/automation/">
-  <meta property="og:title" content="Automation | Alessandro Puccetti">
-  <meta property="og:description" content="Head of Automation&lt;br&gt;Data Platform Engineer"><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png">
+  <meta property="og:url" content="https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/">
+  <meta property="og:title" content="BigQuery Authorized Views with Terraform | Alessandro Puccetti">
+  <meta property="og:description" content="Define and manage BigQuery authorized views in Terraform."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png">
   <meta property="twitter:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
-    <meta property="og:updated_time" content="2019-07-15T00:00:00&#43;00:00">
+    
+      <meta property="article:published_time" content="2021-03-07T00:00:00&#43;00:00">
+    
+    <meta property="article:modified_time" content="2021-03-07T00:00:00&#43;00:00">
   
 
   
 
 
+    
 
+
+
+
+
+
+  
+
+
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/"
+  },
+  "headline": "BigQuery Authorized Views with Terraform",
+  
+  "datePublished": "2021-03-07T00:00:00Z",
+  "dateModified": "2021-03-07T00:00:00Z",
+  
+  "publisher": {
+    "@type": "Organization",
+    "name": "Alessandro Puccetti",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_192x192_fill_lanczos_center_2.png"
+    }
+  },
+  "description": "Define and manage BigQuery authorized views in Terraform."
+}
+</script>
+
+  
 
   
 
@@ -339,10 +377,13 @@
   
 
 
+  
 
 
 
-  <title>Automation | Alessandro Puccetti</title>
+
+
+  <title>BigQuery Authorized Views with Terraform | Alessandro Puccetti</title>
 
 </head>
 
@@ -637,6 +678,86 @@
   </div>
 
   <div class="page-body">
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+  
+  
+<div class="article-container pt-3">
+  <h1>BigQuery Authorized Views with Terraform</h1>
+
+  
+  <p class="page-subtitle">Define and manage BigQuery authorized views in Terraform.</p>
+  
+
+  
+    
+
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+  <span >
+      </span>
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+    
+    Mar 7, 2021
+  </span>
+  
+
+  
+
+  
+  <span class="middot-divider"></span>
+  <span class="article-reading-time">
+    1 min read
+  </span>
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+  <span class="middot-divider"></span>
+  <span class="article-categories">
+    <i class="fas fa-folder mr-1"></i><a href="/category/data-engineering/">Data Engineering</a>, <a href="/category/automation/">Automation</a></span>
+  
+
+</div>
+
     
 
 
@@ -650,44 +771,376 @@
 
 
 
-  
 
-  
-  
-  
-    
-  
-<div class="universal-wrapper pt-3">
-  <h1>Automation</h1>
-
-  
 
   
 </div>
 
 
 
-<div class="universal-wrapper">
-  
+  <div class="article-container">
 
-  
-  
-    
-    
-    
-    <div>
-      <h2><a href="/post/composer-short-living-tasks/" >Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></h2>
-      <div class="article-style">
-        
-          Improving efficient in executing millions of short living tasks.
-        
-      </div>
+    <div class="article-style">
+      
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure >
+
+
+  <a data-fancybox="" href="./bq_tf.png" >
+
+
+  <img src="./bq_tf.png" alt="BigQuery &#43; Terraform"  >
+</a>
+
+
+
+</figure>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-terraform" data-lang="terraform"><span style="color:#66d9ef">resource</span> <span style="color:#e6db74">&#34;google_bigquery_dataset&#34;</span> <span style="color:#e6db74">&#34;data_access&#34;</span> {
+  <span style="color:#a6e22e">dataset_id</span>                  = <span style="color:#e6db74">&#34;data_access&#34;</span>
+  <span style="color:#a6e22e">frinedly_name</span>               = <span style="color:#e6db74">&#34;data_access&#34;</span>
+  <span style="color:#a6e22e">description</span>                 = <span style="color:#e6db74">&#34;Here you can access all the data you subscribed to.&#34;</span>
+  <span style="color:#a6e22e">location</span>                    = <span style="color:#e6db74">&#34;EU&#34;</span>
+
+  <span style="color:#a6e22e">labels</span> = {
+    <span style="color:#a6e22e">env</span> = <span style="color:#e6db74">&#34;production&#34;</span>
+  }</code></pre></div>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/f606ffc6ac767056de9e147a11cb310d.js"></script>
+
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-terraform" data-lang="terraform"><span style="color:#66d9ef">resource</span> <span style="color:#e6db74">&#34;google_bigquery_table&#34;</span> <span style="color:#e6db74">&#34;view_name&#34;</span> {
+  <span style="color:#a6e22e">project</span>     = <span style="color:#a6e22e">google_bigquery_dataset</span>.data<span style="color:#960050;background-color:#1e0010">_</span><span style="color:#a6e22e">access</span>.<span style="color:#a6e22e">project</span>
+  <span style="color:#a6e22e">dataset_id</span>  = <span style="color:#a6e22e">google_bigquery_dataset</span>.data<span style="color:#960050;background-color:#1e0010">_</span><span style="color:#a6e22e">access</span>.data<span style="color:#a6e22e">set_id</span>
+  <span style="color:#a6e22e">table_id</span>    = <span style="color:#e6db74">&#34;view_name&#34;</span>
+
+  <span style="color:#a6e22e">view</span> {
+    <span style="color:#a6e22e">query</span>          = <span style="color:#f92672">&lt;&lt;EOF</span><span style="color:#e6db74">
+</span><span style="color:#e6db74">SELECT
+</span><span style="color:#e6db74">  *
+</span><span style="color:#e6db74">FROM `source_project_id.source_dataset_id.source_table`
+</span><span style="color:#e6db74">WHERE ...
+</span><span style="color:#e6db74"></span><span style="color:#f92672">EOF</span>
+    <span style="color:#a6e22e">use_legacy_sql</span> = <span style="color:#66d9ef">false</span>
+  }
+
+  <span style="color:#a6e22e">depends_on</span> = [
+    <span style="color:#a6e22e">google_bigquery_dataset</span>.data<span style="color:#960050;background-color:#1e0010">_</span><span style="color:#a6e22e">access</span>
+  ]
+}</code></pre></div>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-terraform" data-lang="terraform"><span style="color:#66d9ef">resource</span> <span style="color:#e6db74">&#34;google_bigquery_dataset_access&#34;</span> <span style="color:#e6db74">&#34;view_authorization&#34;</span> {
+  <span style="color:#a6e22e">project</span>    = <span style="color:#e6db74">&#34;source_project_id&#34;</span>
+  <span style="color:#a6e22e">dataset_id</span> = <span style="color:#e6db74">&#34;source_dataset_id&#34;</span>
+  <span style="color:#a6e22e">view</span> {
+    <span style="color:#a6e22e">project_id</span> = <span style="color:#a6e22e">google_bigquery_table</span>.<span style="color:#a6e22e">view_name</span>.<span style="color:#a6e22e">project</span>
+    <span style="color:#a6e22e">dataset_id</span> = <span style="color:#a6e22e">google_bigquery_table</span>.<span style="color:#a6e22e">view_name</span>.data<span style="color:#a6e22e">set_id</span>
+    <span style="color:#a6e22e">table_id</span>   = <span style="color:#a6e22e">google_bigquery_table</span>.<span style="color:#a6e22e">view_name</span>.<span style="color:#a6e22e">table_id</span>
+  }
+
+  <span style="color:#a6e22e">depends_on</span> = [
+    <span style="color:#a6e22e">google_bigquery_dataset</span>.data<span style="color:#960050;background-color:#1e0010">_</span><span style="color:#a6e22e">access</span>
+  ]
+}</code></pre></div>
+
     </div>
-  
 
-  
+    
 
+
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/bigquery/">BigQuery</a>
+  
 </div>
+
+
+
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/&amp;text=BigQuery%20Authorized%20Views%20with%20Terraform" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/&amp;t=BigQuery%20Authorized%20Views%20with%20Terraform" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=BigQuery%20Authorized%20Views%20with%20Terraform&amp;body=https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/&amp;title=BigQuery%20Authorized%20Views%20with%20Terraform" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=BigQuery%20Authorized%20Views%20with%20Terraform%20https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/&amp;title=BigQuery%20Authorized%20Views%20with%20Terraform" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://alepuccetti.github.io/"><img class="avatar mr-3 avatar-circle" src="/authors/admin/avatar_huc410300e956b91907a41e009b4d53c45_95286_270x270_fill_q90_lanczos_center.jpg" alt=""></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://alepuccetti.github.io/"></a></h5>
+      <h6 class="card-subtitle">Head of Automation<br>Data Platform Engineer</h6>
+      <p class="card-text">My interests include data engineering at scale, geospatial analytics, machine learning, windsurf, and cooking.</p>
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/alepuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://www.linkedin.com/in/alessandropuccetti" target="_blank" rel="noopener">
+        <i class="fab fa-linkedin"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://medium.com/@alepuccetti/" target="_blank" rel="noopener">
+        <i class="fab fa-medium"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://stackoverflow.com/users/4018047/alessandro" target="_blank" rel="noopener">
+        <i class="fab fa-stack-overflow"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+  <div class="article-widget content-widget-hr">
+    <h3>Related</h3>
+    <ul>
+      
+      <li><a href="/post/bigquery-real-time-data-delivery-at-scale/">Real-Time data delivery at scale with BigQuery </a></li>
+      
+      <li><a href="/post/bigquery-time-travel/">Time Travel with BigQuery</a></li>
+      
+      <li><a href="/post/serverless-s3-access-logs-analytics-with-bigquery/">Serverless S3 Access Logs Analytics using BigQuery</a></li>
+      
+      <li><a href="/post/bigquery-geography-clustering/">BigQuery Geography Clustering</a></li>
+      
+      <li><a href="/post/bigquery-partitioning-clustering/">BigQuery Partitioning &amp; Clustering</a></li>
+      
+    </ul>
+  </div>
+  
+
+
+
+
+
+  </div>
+</article>
   </div>
 
   <div class="page-footer">

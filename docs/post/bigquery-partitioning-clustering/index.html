@@ -240,7 +240,7 @@
   
   
   
-  <link rel="stylesheet" href="/css/wowchemy.min.bc14b2ec30144da16d150b1c5777f483.css">
+  <link rel="stylesheet" href="/css/wowchemy.min.16a8b3e47a199a3d0cbe9ea849f02320.css">
 
   
 
@@ -666,23 +666,6 @@
 
       
       
-      <li class="nav-item dropdown theme-dropdown">
-        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
-          <i class="fas fa-moon" aria-hidden="true"></i>
-        </a>
-        <div class="dropdown-menu">
-          <a href="#" class="dropdown-item js-set-theme-light">
-            <span>Light</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-dark">
-            <span>Dark</span>
-          </a>
-          <a href="#" class="dropdown-item js-set-theme-auto">
-            <span>Automatic</span>
-          </a>
-        </div>
-      </li>
-      
 
       
 
@@ -854,14 +837,8 @@ Thus, your queries will run faster and, because they are reading less data, they
 At the time of table creation, you can specify which column is going to be used for partitioning,
 otherwise, you can set up the partitioning on <a href="https://cloud.google.com/bigquery/docs/creating-partitioned-tables" target="_blank" rel="noopener">ingestion time</a>.
 Since you can query this table in the same exact way of those that are not partitioned, you won&rsquo;t have to change a line of your existing queries.</p>
-<pre><code class="language-sql">select
-  day,
-  count(*)
-from full_history
-where sampling_date &gt;= &quot;2019–08–05&quot;
-and sampling_date &lt; &quot;2019–08–06&quot;
-group by 1
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=query_partition.sql"></script>
+
 <p>Assuming that &ldquo;<strong>sampling_date</strong>&rdquo; is the partitioning column,
 now BigQuery can use the specified values in the &ldquo;where clause&rdquo; to read only data that belong to the right partitions.</p>
 <h4 id="bonus-nugget">Bonus nugget</h4>
@@ -894,31 +871,17 @@ A single row may look like this:</p>
 ...
 </code></pre>
 <p>The following query counts, broken-down per year, all the page views for the Italian wiki from 2015–01–01.</p>
-<pre><code class="language-sql">select
-  _table_suffix as year,
-  wiki,
-  sum(views) / pow(10, 9) as Views
-from `fh-bigquery.wikipedia_v3.pageviews_*`
-where wiki = 'it'and datehour &gt;= '2015–01–01'
-group by 1,2
-order by 1 asc
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=IT_query_cluster.sql"></script>
+
 <p>If you write this query in BigQuery UI, it will estimate a data scanning of 4.5 TB.
 However, if you actually run it, the final scanned data will be of just 160 GB.</p>
 <p><em>How is this possible?</em></p>
 <p>When BigQuery reads only read rows belonging to the cluster that contains the data for the Italian wiki while discarding everything else.</p>
 <p><em>Why is the columns order so important in clustering?</em></p>
-<p>It is important because BigQuery will organise the data hierarchically according to the column order that is specified when the table is created.</p>
+<p>It is important because BigQuery will organize the data hierarchically according to the column order that is specified when the table is created.</p>
 <p>Let&rsquo;s use the following example:</p>
-<pre><code class="language-bash">select
-  wiki,
-  sum(views) / pow(10, 9) as Views
-from `fh-bigquery.wikipedia_v3.pageviews_2019`
-where title = 'Pizza'
-and datehour &gt;= '2019–01–01'
-group by 1
-order by 1 asc
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=pizza_query_cluster.sql"></script>
+
 <p>This query needs to access all the &ldquo;wiki&rdquo; clusters and then it can use the &ldquo;title&rdquo; value to skip the not matching clusters.
 This results in scanning a lot more data than if the clustering columns were in the opposite order &ldquo;<strong>title</strong>&rdquo;, &ldquo;<strong>wiki</strong>&rdquo;.
 At the time of writing, the query above estimated a scanning cost of 1.4 TB but it actually scanned only 875.6 GB of data.
@@ -932,15 +895,8 @@ Let&rsquo;s now invert the clustering columns order putting first &ldquo;<strong
 <p>Running the &ldquo;Pizza&rdquo; query on our new table &ldquo;<strong>my_project_id:dataset_us.wikipedia_2019</strong>&rdquo; should be much cheaper.
 In fact, while the estimation was still of 1.4 TB, the actual data read was just of 26.3 GB, that is 33 times less.</p>
 <p>As final test let&rsquo;s try filtering on the &ldquo;<strong>wiki</strong>&rdquo; column:</p>
-<pre><code class="language-sql">select
-  wiki,
-  sum(views) / pow(10, 9) as Views_B
-from `my_project_id:dataset_us.wikipedia_2019`
-where wiki = 'it' and title is not null
-and datehour &gt;= '2019–01–01'
-group by 1
-order by 1 asc
-</code></pre>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/859d196d00588efcfb08724218cfabaf.js?file=IT_query_cluster_after_re_cluster.sql"></script>
+
 <p>The data read estimation is always the same but now the actually data read jumped to 1.4 TB (the entire table)
 whereas, in the first example, the actually data read was just of 160 GB.</p>
 <p><strong>Note</strong>: Since BigQuery uses a columnar store, &ldquo;<strong>title is not null</strong>&rdquo; ensures that we refer always to the same number of columns in every query.
@@ -1215,15 +1171,15 @@ It is free, it does not need to change any of your queries and it will make them
     <h3>Related</h3>
     <ul>
       
+      <li><a href="/post/bigquery-authorized-views-with-terraform/">BigQuery Authorized Views with Terraform</a></li>
+      
+      <li><a href="/post/bigquery-real-time-data-delivery-at-scale/">Real-Time data delivery at scale with BigQuery </a></li>
+      
+      <li><a href="/post/bigquery-time-travel/">Time Travel with BigQuery</a></li>
+      
       <li><a href="/post/serverless-s3-access-logs-analytics-with-bigquery/">Serverless S3 Access Logs Analytics using BigQuery</a></li>
       
       <li><a href="/post/bigquery-geography-clustering/">BigQuery Geography Clustering</a></li>
-      
-      <li><a href="/post/bigquery-wildcards/">BigQuery Wildcards</a></li>
-      
-      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
-      
-      <li><a href="/post/composer-short-living-tasks/">Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></li>
       
     </ul>
   </div>
@@ -1320,11 +1276,11 @@ It is free, it does not need to change any of your queries and it will make them
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
         
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
+        
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/python.min.js"></script>
         
         <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/sql.min.js"></script>
-        
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/bash.min.js"></script>
         
       
 
@@ -1411,7 +1367,7 @@ It is free, it does not need to change any of your queries and it will make them
     
     
     
-    <script src="/js/wowchemy.min.d0d321ad6c45c08297f04e4ff03367d3.js"></script>
+    <script src="/js/wowchemy.min.8815837d53cda320254d3445b2438857.js"></script>
 
     
 
