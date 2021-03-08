@@ -36,15 +36,7 @@ We will use the _weather_gsod_ specifically the two tables _all_ and _all_geoclu
 Let's say that we want the all-time minimum and maximum temperature within the Greater London area for each station.
 Our query will look like this:
 
-```sql
-select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all`
-where st_within(point_gis, st_geogfromtext('POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))'))
-group by 1
-```
+{{< gist alepuccetti 24eff1b26520bd842889d44042d24460 "query.sql">}}
 
 Results:
 
@@ -66,15 +58,7 @@ KEW-IN-LONDON       23.3      82.4
 This query reads **9.02GB** of data.
 Now let's see how the same query perform on the clustered table:
 
-```sql
-select
-  name,
-  min(temp) as min_temp,
-  max(temp) as max_temp
-from `fh-bigquery.weather_gsod.all_geoclusterd`
-where st_within(point_gis, st_geogfromtext('POLYGON((-0.5191087546253357 51.69057940987663,-0.5850267233753357 51.530249275252345,-0.5685472311878357 51.33504597185959,-0.19226549290658568 51.2285324250183,0.20049573756216432 51.271511154557565,0.3185987649059143 51.55074848767514,0.2856397805309143 51.64628942375177,0.04943372584341432 51.72461916884517,-0.5191087546253357 51.69057940987663))'))
-group by 1
-```
+{{< gist alepuccetti 24eff1b26520bd842889d44042d24460 "query_geo_filtered.sql">}}
 
 The result is obviously the same but, this time, BigQuery reads just **98.97MB** of the data!!!
 So switching to the geo clustered table made this query almost **100 times** cheaper.

@@ -70,29 +70,12 @@ my_dataset
 
 The following query will return the count per day per country of events of type _"submit"_ in our dataset.
 
-```sql
-select
-  _table_suffix as country,
-  day,
-  count(*)
-from events_*
-where type = "submit"
-group by 1,2
-```
+{{< gist alepuccetti 127ea15abe46a2ffbb7e727714c6b5da "table_wildcards.sql">}}
 
 You can also filter out matched tables using _"\_table_suffix"_ in the where clause.
 For example, if you are only interested in Germany, France, and Japan just run the following:
 
-```sql
-select
-  _table_suffix as country,
-  day,
-  count(*)
-from events_*
-where type = "submit"
-and _table_suffix in ("DE", "FR", "JP")
-group by 1,2
-```
+{{< gist alepuccetti 127ea15abe46a2ffbb7e727714c6b5da "table_wildcards_filtered.sql">}}
 
 What I personally like the most of using wildcards is that it enables me to design better, simpler,
 and more generic analytics queries as well as ETL jobs.
