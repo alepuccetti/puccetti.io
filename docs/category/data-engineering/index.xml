@@ -5,12 +5,100 @@
     <link>https://alepuccetti.github.io/category/data-engineering/</link>
       <atom:link href="https://alepuccetti.github.io/category/data-engineering/index.xml" rel="self" type="application/rss+xml" />
     <description>Data Engineering</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 09 Mar 2021 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Wed, 31 Mar 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png</url>
       <title>Data Engineering</title>
       <link>https://alepuccetti.github.io/category/data-engineering/</link>
     </image>
+    
+    <item>
+      <title>Real-Time data delivery at scale with BigQuery</title>
+      <link>https://alepuccetti.github.io/post/bigquery-real-time-data-delivery-at-scale/</link>
+      <pubDate>Wed, 31 Mar 2021 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-real-time-data-delivery-at-scale/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure &gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./data_delivery.jpeg&#34; &gt;
+
+
+  &lt;img src=&#34;./data_delivery.jpeg&#34; alt=&#34;Data Delivery&#34;  &gt;
+&lt;/a&gt;
+
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;At &lt;a href=&#34;https://huq.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Huq Industries&lt;/a&gt;, we collect and process 30 billions events a month from more than 8 million devices.
+Every day, we enrich, slice, and then deliver data feeds in various forms to our clients mainly via BigQuery, GCS, or S3.
+&lt;br&gt;In the past 2 years, we have seen our data ingestion growing 4x each year and we forecast the same for the next years to come.
+Our already large data history and its steady and high grow rate pose several challenges from ingestion to storage, from processing to delivery and others.
+&lt;br&gt;All these parts can be very critical.
+However, in this specific post, we will focus on the processing and delivery.
+We will see how we leveraged &lt;a href=&#34;https://cloud.google.com/bigquery/docs/authorized-views&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;BigQuery Authorized Views&lt;/a&gt; to cut our storage and processing costs, to reduce our delivery time to zero and to streamline the whole system by removing many processes and dependencies.&lt;/p&gt;
+&lt;h2 id=&#34;the-issue&#34;&gt;The issue&lt;/h2&gt;
+&lt;p&gt;Many of our clients access our data directly using our self-served analytics offering via BigQuery sandboxed instances.
+&lt;br&gt;At the very beginning, our system was creating and updating tables for each individual client in its own instances.
+This choice was based on how the core processing system created and updated the master tables (one table per country updated daily).
+This soon resulted  in a lot of duplicated data which, in turn, was increasing our costs with the data growth and the number of clients.
+&lt;br&gt;Hence, we &lt;strong&gt;needed&lt;/strong&gt; to find a different design before it would have become unsustainable.&lt;/p&gt;
+&lt;h2 id=&#34;the-solution-authorized-views-everywhere&#34;&gt;The solution: Authorized Views Everywhere&lt;/h2&gt;
+&lt;p&gt;Now that we leveraged BigQuery clustering (see previous &lt;a href=&#34;https://alepuccetti.github.io/post/bigquery-partitioning-clustering/&#34;&gt;blogpost&lt;/a&gt;), instead of sharding data into different tables for each country, we were able to simplify part of the data processing and delivery system removing ETL jobs and dependencies.
+This resulted in &lt;strong&gt;cost reduction&lt;/strong&gt; for both processing and storage.
+Last, but definitely not least, it removed the delay in delivery time from when the data is ready to when the data is available to the clients.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;What is an authorised view?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;An authorised view is a SQL view that was &lt;strong&gt;authorised&lt;/strong&gt; to read tables in a specific dataset.
+This means that users, who are allowed to access the view, do not need to get permission  to access the underlined tables.
+It is the view itself that holds that permission and acts as a sort of middle-man.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How is this useful for us?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;In our case, we were able to provide all our clients with a view that grants them access only to the data they are subscribing to.
+Each view can be different and customized according to each client&amp;rsquo;s needs but all of them use the same source tables.
+Thus, removing a lot of duplicated data and updating processes.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Now, let’s assume that we have 10s of clients who subscribed to different timeframes and/or countries to our data.
+Additionally, some of them needed customization of the table schema.
+As you can imagine, the ETL jobs and their scheduling become quite complicated and pricey. Clearly, this won’t be sustainable when scaling up to &lt;strong&gt;100s&lt;/strong&gt; or &lt;strong&gt;1000s&lt;/strong&gt; of clients.
+&lt;br&gt;&lt;strong&gt;Authorised views&lt;/strong&gt; enabled us to optimize this issue and we can now easily serve any number of clients with custom data requirements with very little overhead.
+This can be done by simply creating a view and authorising it to the master dataset:&lt;/p&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/d608ebaac5995eaf382074911012cacf.js?file=create_view.sql&#34;&gt;&lt;/script&gt;
+
+&lt;p&gt;After we created this view and we granted users access to it, they still won’t be able to successfully run their queries.
+In fact, if an user does not have access to the underlying tables (i.e. &lt;code&gt;table_a&lt;/code&gt; and &lt;code&gt;table_b&lt;/code&gt;) and he/she runs a query using this view, that will result in a permission error.
+&lt;br&gt;However, by authorizing the view to access &lt;code&gt;dataset_a&lt;/code&gt; and &lt;code&gt;dataset_b&lt;/code&gt; that will enable users to successfully run their queries.
+&lt;br&gt;This can easily be done in the BigQuery explorer. To get to the “authorised views” menu go to &lt;code&gt;source_project_id&lt;/code&gt; ➝ &lt;code&gt;dataset_a&lt;/code&gt; ➝ &amp;ldquo;Share Dataset&amp;rdquo; ➝ &amp;ldquo;Authorised Views&amp;rdquo;. Now, you can configure which views have access to this dataset using their &lt;code&gt;project_id&lt;/code&gt;, &lt;code&gt;dataset_id&lt;/code&gt;, and &lt;code&gt;view_id&lt;/code&gt;. In our example: &lt;code&gt;client_project&lt;/code&gt;, &lt;code&gt;dataset&lt;/code&gt;, and  &lt;code&gt;view_name&lt;/code&gt;. Repeat this for all the dataset that the view needs to access, in our example we have 2 datasets in 2 different projects.&lt;/p&gt;
+&lt;hr&gt;
+&lt;h2 id=&#34;bonus-views-using-views&#34;&gt;&lt;strong&gt;Bonus&lt;/strong&gt;: views using views&lt;/h2&gt;
+&lt;p&gt;BigQuery, before running a query, resolves all the views and finds all the source tables and verifies that the user or, in our case, the view can read from all them.
+Otherwise will return a permission error.
+&lt;br&gt;What we saw so far works well if our views use tables. &lt;strong&gt;What if our authorised view uses another view?&lt;/strong&gt; Would this solution still work as is? Does our view need to be authorised on all the dataset used by all the used views and their views etc.?&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;The answer is no&lt;/strong&gt;, at least not directly.&lt;/p&gt;
+&lt;p&gt;Of course you could authorise the final view to access all of these tables but, as you can imagine, this will result in a lot of dependencies, repetitions, and complex definitions that will be a nightmare to maintain.&lt;/p&gt;
+&lt;p&gt;&lt;strong&gt;How can we successfully use views in an authorised view?&lt;/strong&gt;&lt;/p&gt;
+&lt;p&gt;The answer is &lt;strong&gt;authorised views&lt;/strong&gt;. More precisely, we can use authorised views in another authorised view because the “inner” view will be authorised to access the resources creating a chain of authorisation. In this way, we can just simply manage the authorisation of each single view.&lt;/p&gt;
+&lt;p&gt;Stay tuned for an implementation of this using Terraform in the coming blogposts.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Follow or contact me on Twitter for more stories about data, infrastructure, and automation.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Time Travel with BigQuery</title>
