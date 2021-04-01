@@ -61,7 +61,7 @@ This can be done by simply creating a view and authorising it to the master data
 {{< gist alepuccetti d608ebaac5995eaf382074911012cacf "create_view.sql">}}
 
 After we created this view and we granted users access to it, they still won’t be able to successfully run their queries.
-In fact, if an user does not have access to the underlying tables (i.e. `table_a` and `table_b`) and he/she runs a query using this view, that will result in a permission error.
+In fact, if a user does not have access to the underlying tables (i.e. `table_a` and `table_b`) and he/she runs a query using this view, that will result in a permission error.
 <br>However, by authorizing the view to access `dataset_a` and `dataset_b` that will enable users to successfully run their queries.
 <br>This can easily be done in the BigQuery explorer. To get to the “authorised views” menu go to `source_project_id` &#10141; `dataset_a` &#10141; "Share Dataset" &#10141; "Authorised Views". Now, you can configure which views have access to this dataset using their `project_id`, `dataset_id`, and `view_id`. In our example: `client_project`, `dataset`, and  `view_name`. Repeat this for all the dataset that the view needs to access, in our example we have 2 datasets in 2 different projects.
 

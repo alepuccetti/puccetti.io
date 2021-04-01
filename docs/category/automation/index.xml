@@ -82,7 +82,7 @@ This can be done by simply creating a view and authorising it to the master data
 &lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/d608ebaac5995eaf382074911012cacf.js?file=create_view.sql&#34;&gt;&lt;/script&gt;
 
 &lt;p&gt;After we created this view and we granted users access to it, they still won’t be able to successfully run their queries.
-In fact, if an user does not have access to the underlying tables (i.e. &lt;code&gt;table_a&lt;/code&gt; and &lt;code&gt;table_b&lt;/code&gt;) and he/she runs a query using this view, that will result in a permission error.
+In fact, if a user does not have access to the underlying tables (i.e. &lt;code&gt;table_a&lt;/code&gt; and &lt;code&gt;table_b&lt;/code&gt;) and he/she runs a query using this view, that will result in a permission error.
 &lt;br&gt;However, by authorizing the view to access &lt;code&gt;dataset_a&lt;/code&gt; and &lt;code&gt;dataset_b&lt;/code&gt; that will enable users to successfully run their queries.
 &lt;br&gt;This can easily be done in the BigQuery explorer. To get to the “authorised views” menu go to &lt;code&gt;source_project_id&lt;/code&gt; ➝ &lt;code&gt;dataset_a&lt;/code&gt; ➝ &amp;ldquo;Share Dataset&amp;rdquo; ➝ &amp;ldquo;Authorised Views&amp;rdquo;. Now, you can configure which views have access to this dataset using their &lt;code&gt;project_id&lt;/code&gt;, &lt;code&gt;dataset_id&lt;/code&gt;, and &lt;code&gt;view_id&lt;/code&gt;. In our example: &lt;code&gt;client_project&lt;/code&gt;, &lt;code&gt;dataset&lt;/code&gt;, and  &lt;code&gt;view_name&lt;/code&gt;. Repeat this for all the dataset that the view needs to access, in our example we have 2 datasets in 2 different projects.&lt;/p&gt;
 &lt;hr&gt;
