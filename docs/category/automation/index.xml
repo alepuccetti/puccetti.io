@@ -5,12 +5,80 @@
     <link>https://alepuccetti.github.io/category/automation/</link>
       <atom:link href="https://alepuccetti.github.io/category/automation/index.xml" rel="self" type="application/rss+xml" />
     <description>Automation</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Wed, 31 Mar 2021 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 13 Apr 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png</url>
       <title>Automation</title>
       <link>https://alepuccetti.github.io/category/automation/</link>
     </image>
+    
+    <item>
+      <title>BigQuery Authorized Views with Terraform</title>
+      <link>https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/</link>
+      <pubDate>Tue, 13 Apr 2021 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/bigquery-authorized-views-with-terraform/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure &gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./bq_tf.png&#34; &gt;
+
+
+  &lt;img src=&#34;./bq_tf.png&#34; alt=&#34;BigQuery &amp;#43; Terraform&#34;  &gt;
+&lt;/a&gt;
+
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;In one of my previous blog posts, we have seen how, at Huq Industries, we used authorised views to reduce costs, complexity, and delivery time.
+You can read more about it &lt;a href=&#34;https://alepuccetti.github.io/post/bigquery-real-time-data-delivery-at-scale/&#34;&gt;here&lt;/a&gt;.
+In this post, we will see how to implement authorised views in production and managing them as code.
+This solution enables us to easily manage 100s of clients, each one with unique data requirements.
+To better manage and automate our workflow, we source control and review all our Google Cloud Platform data infrastructure using GitHub and Terraform Cloud.
+This enabled us to easily communicate, track, and maintain infrastructure changes.
+Let’s see how to define views and authorize them in the needed datasets.
+First, we would need a &lt;strong&gt;dataset&lt;/strong&gt; in the client project to contain a view, then we would need the &lt;strong&gt;view&lt;/strong&gt; itself, and finally the &lt;strong&gt;authorization&lt;/strong&gt;.&lt;/p&gt;
+&lt;p&gt;Define the &lt;strong&gt;dataset&lt;/strong&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/87a74e9469a612271d9adda8676eef50.js?file=define_user_dataset.tf&#34;&gt;&lt;/script&gt;
+&lt;/p&gt;
+&lt;p&gt;Define the &lt;strong&gt;view&lt;/strong&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/87a74e9469a612271d9adda8676eef50.js?file=define_user_view.tf&#34;&gt;&lt;/script&gt;
+&lt;/p&gt;
+&lt;p&gt;Lastly, we have to &lt;strong&gt;authorise&lt;/strong&gt; the view to access any needed dataset (in this example just one)
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/87a74e9469a612271d9adda8676eef50.js?file=authorize_user_view.tf&#34;&gt;&lt;/script&gt;
+&lt;/p&gt;
+&lt;p&gt;After having generated and checked the plan you can apply it.
+The view will then be created so that each user who has access to it can run queries without having direct access to the underlying tables.&lt;/p&gt;
+&lt;p&gt;To easily scale this to 100s of clients, we can write a terraform module that implements the last 2 steps and invoke it for each client we need to provision with just different variables such as: &lt;code&gt;client_project_id&lt;/code&gt;, &lt;code&gt;client_dataset_name&lt;/code&gt;, &lt;code&gt;view_name&lt;/code&gt;, &lt;code&gt;view_query&lt;/code&gt;, and the list of &lt;code&gt;project_id&lt;/code&gt;, &lt;code&gt;datase_id&lt;/code&gt;, to autorise.&lt;/p&gt;
+&lt;p&gt;One of the nicest things of authorised views is that the authorisation works as a chain.
+At Huq, we leverage this behaviour so that we just have to authorise the clients views to the dataset that directly accesses them.
+We use authorised views almost everywhere so that if one of these views are used by some other views, the end user does not need extra authorisation.&lt;/p&gt;
+&lt;h3 id=&#34;warning&#34;&gt;WARNING&lt;/h3&gt;
+&lt;p&gt;If you also manage datasets access via other terraform resources such as: &lt;code&gt;bigquery_dataset_iam_policy&lt;/code&gt;, &lt;code&gt;bigquery_dataset_iam_binding&lt;/code&gt;, or &lt;code&gt;bigquery_dataset_iam_member&lt;/code&gt;.
+They will fight over what the policy should be with &lt;code&gt;google_bigquery_dataset_access&lt;/code&gt;.
+In fact, using any of the &lt;code&gt;google_bigquery_dataset_*&lt;/code&gt; resources will result in removing any authorised views from that dataset previously configured via &lt;code&gt;google_bigquery_dataset_access&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;You can read more about this in the terraform &lt;a href=&#34;https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_dataset_access&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;docs&lt;/a&gt;.&lt;/p&gt;
+&lt;p&gt;Follow or contact me on Twitter for more stories about data, infrastructure, and automation.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Real-Time data delivery at scale with BigQuery</title>
