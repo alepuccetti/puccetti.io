@@ -48,7 +48,7 @@
 
 &lt;/figure&gt;
 
-&lt;p&gt;In one of my previous blog posts, we have seen how, at Huq Industries, we used authorised views to reduce costs, complexity, and delivery time.
+&lt;p&gt;In one of my previous blog posts, we have seen how, at &lt;a href=&#34;https://huq.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Huq Industries&lt;/a&gt;, we used authorised views to reduce costs, complexity, and delivery time.
 You can read more about it &lt;a href=&#34;https://alepuccetti.github.io/post/bigquery-real-time-data-delivery-at-scale/&#34;&gt;here&lt;/a&gt;.
 In this post, we will see how to implement authorised views in production and managing them as code.
 This solution enables us to easily manage 100s of clients, each one with unique data requirements.

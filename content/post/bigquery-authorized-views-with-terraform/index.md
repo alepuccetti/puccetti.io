@@ -18,7 +18,7 @@ draft: false
 
 {{< figure src="./bq_tf.png" title="" alt="BigQuery + Terraform" >}}
 
-In one of my previous blog posts, we have seen how, at Huq Industries, we used authorised views to reduce costs, complexity, and delivery time.
+In one of my previous blog posts, we have seen how, at [Huq Industries](https://huq.io), we used authorised views to reduce costs, complexity, and delivery time.
 You can read more about it [here]({{< relref "/post/bigquery-real-time-data-delivery-at-scale/index.md" >}}).
 In this post, we will see how to implement authorised views in production and managing them as code.
 This solution enables us to easily manage 100s of clients, each one with unique data requirements.
