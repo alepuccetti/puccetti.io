@@ -8,13 +8,14 @@ I love travelling and meeting new people from different cultures, and I enjoy ha
 
 ## What am I up to now?
 
-
-I am a data engineer with a passion for automation.
-One of my personal mottos is *"If you have to do it more than three times you’ve gotta automate it"*.
-I currently work at **[Huq Industries](https://huq.io)** (from 2017) in London, where I manage and process hundreds of billions of geospatial events.
+I am data platform engineer at with a passion for automation.
+One of my personal motto is *"If you have to do it more than three times you’ve gotta automate it"*.
+I currently work at **[Huq Industries](https://huq.io)** (from 2017) in London as Principal Data Platform Engineer,
+where I design and build our infrastructure to manage and process hundreds of billions of geospatial events.
 I am a Google Cloud Platform technologies specialist, notably of **[BigQuery](https://cloud.google.com/bigquery)**.
 At Huq Industries, I built our internal and client-facing data platforms using BigQuery as foundation
 to allow us and our clients to perform **geospatial** analytics on billions of events at lighting speed.
+Also, I lead the Huq scraping effort to collect data used in our enrichment data pipelines.
 After working hours, I like writing blogposts and giving specialized talks about cool things I do at work and about personal side projects.
 You can find my blogposts on this website and on my [Medium](https://medium.com/@alepuccetti) page.
 You can also find me giving talks at the [GDG Cloud London](https://www.meetup.com/gdgcloud/).
