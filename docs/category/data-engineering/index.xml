@@ -116,19 +116,19 @@ However, for our purpose the difference is negligible.&lt;/p&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;20x&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td style=&#34;text-align:center&#34;&gt;1000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;1,000 Slots&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;3:05&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;2&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;16x&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td style=&#34;text-align:center&#34;&gt;2000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2,000 Slots&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;1:43&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;2.7&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;12x&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td style=&#34;text-align:center&#34;&gt;4000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;4,000 Slots&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;1:06&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;2.9&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;11x&lt;/td&gt;
@@ -138,7 +138,7 @@ However, for our purpose the difference is negligible.&lt;/p&gt;
 &lt;p&gt;As you can see from the results, using flat-rate pricing reduced the costs significantly.
 In fact, the fewer slots we use, the cheaper the job becomes.
 On the down side, it needs more time to complete, but this is expected.
-The interesting results is that the 2000 and 4000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
+The interesting results is that the 2,000 and 4,000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
 This looks like a win-win situation!!!
 We need to remember that this analysis is valid for our non complex query and it might yield very different results for more complex jobs and workloads.
 I will present different scenarios and their analysis in the following blog posts.&lt;/p&gt;
@@ -184,8 +184,8 @@ The bottom part of the graph shows the &lt;strong&gt;estimated used slots&lt;/st
 
 &lt;/figure&gt;
 
-&lt;p&gt;When using on-demand pricing our slots usage profile shows that it cruises around 2000 slots, but sometimes it bursts to 4000 slots (however, it often uses fewer slots).
-This happens because when using on-demand pricing, the available slots are (loosely) &amp;ldquo;capped&amp;rdquo; to 2000 slots per project.
+&lt;p&gt;When using on-demand pricing our slots usage profile shows that it cruises around 2,000 slots, but sometimes it bursts to 4,000 slots (however, it often uses fewer slots).
+This happens because when using on-demand pricing, the available slots are (loosely) &amp;ldquo;capped&amp;rdquo; to 2,000 slots per project.
 However, projects might access to more slots in burst from time to time.&lt;/p&gt;
 &lt;p&gt;The slots usage profile radically change when running the query under a reservation.
 It is clear that the query fully utilizes the available slots for almost 100% of the execution time.
@@ -377,19 +377,19 @@ This time, I will not run the job using on-demand pricing for obvious reasons
 &lt;td style=&#34;text-align:center&#34;&gt;17x&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td style=&#34;text-align:center&#34;&gt;1000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;1,000 Slots&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;40&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;25&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;17x&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td style=&#34;text-align:center&#34;&gt;2000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2,000 Slots&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;25&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;33&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;13x&lt;/td&gt;
 &lt;/tr&gt;
 &lt;tr&gt;
-&lt;td style=&#34;text-align:center&#34;&gt;4000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;4,000 Slots&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;14&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;37&lt;/td&gt;
 &lt;td style=&#34;text-align:center&#34;&gt;11x&lt;/td&gt;
@@ -548,7 +548,7 @@ This time, I will not run the job using on-demand pricing for obvious reasons
 In fact, you can see the same the 2 dips and the tail.&lt;/p&gt;
 &lt;p&gt;In our case, the query has only a few and short dips and tail.
 So, we could continue improving performance by simply buying more slots.
-You can see that when we test 4000 slots the job complete faster than with 2000, but it costs more.
+You can see that when we test 4,000 slots the job complete faster than with 2,000, but it costs more.
 This is because the time we save adding more slots is not enough to compensate the idle slots time.&lt;/p&gt;
 &lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
 &lt;p&gt;In conclusion, flat-rate pricing proved to be enormously beneficial to reduce the cost of our data-intensive job.

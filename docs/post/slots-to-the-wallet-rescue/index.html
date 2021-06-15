@@ -880,19 +880,19 @@ However, for our purpose the difference is negligible.</p>
 <td style="text-align:center">20x</td>
 </tr>
 <tr>
-<td style="text-align:center">1000 Slots</td>
+<td style="text-align:center">1,000 Slots</td>
 <td style="text-align:center">3:05</td>
 <td style="text-align:center">2</td>
 <td style="text-align:center">16x</td>
 </tr>
 <tr>
-<td style="text-align:center">2000 Slots</td>
+<td style="text-align:center">2,000 Slots</td>
 <td style="text-align:center">1:43</td>
 <td style="text-align:center">2.7</td>
 <td style="text-align:center">12x</td>
 </tr>
 <tr>
-<td style="text-align:center">4000 Slots</td>
+<td style="text-align:center">4,000 Slots</td>
 <td style="text-align:center">1:06</td>
 <td style="text-align:center">2.9</td>
 <td style="text-align:center">11x</td>
@@ -902,7 +902,7 @@ However, for our purpose the difference is negligible.</p>
 <p>As you can see from the results, using flat-rate pricing reduced the costs significantly.
 In fact, the fewer slots we use, the cheaper the job becomes.
 On the down side, it needs more time to complete, but this is expected.
-The interesting results is that the 2000 and 4000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
+The interesting results is that the 2,000 and 4,000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
 This looks like a win-win situation!!!
 We need to remember that this analysis is valid for our non complex query and it might yield very different results for more complex jobs and workloads.
 I will present different scenarios and their analysis in the following blog posts.</p>
@@ -948,8 +948,8 @@ The bottom part of the graph shows the <strong>estimated used slots</strong> at 
 
 </figure>
 
-<p>When using on-demand pricing our slots usage profile shows that it cruises around 2000 slots, but sometimes it bursts to 4000 slots (however, it often uses fewer slots).
-This happens because when using on-demand pricing, the available slots are (loosely) &ldquo;capped&rdquo; to 2000 slots per project.
+<p>When using on-demand pricing our slots usage profile shows that it cruises around 2,000 slots, but sometimes it bursts to 4,000 slots (however, it often uses fewer slots).
+This happens because when using on-demand pricing, the available slots are (loosely) &ldquo;capped&rdquo; to 2,000 slots per project.
 However, projects might access to more slots in burst from time to time.</p>
 <p>The slots usage profile radically change when running the query under a reservation.
 It is clear that the query fully utilizes the available slots for almost 100% of the execution time.
@@ -1141,19 +1141,19 @@ This time, I will not run the job using on-demand pricing for obvious reasons
 <td style="text-align:center">17x</td>
 </tr>
 <tr>
-<td style="text-align:center">1000 Slots</td>
+<td style="text-align:center">1,000 Slots</td>
 <td style="text-align:center">40</td>
 <td style="text-align:center">25</td>
 <td style="text-align:center">17x</td>
 </tr>
 <tr>
-<td style="text-align:center">2000 Slots</td>
+<td style="text-align:center">2,000 Slots</td>
 <td style="text-align:center">25</td>
 <td style="text-align:center">33</td>
 <td style="text-align:center">13x</td>
 </tr>
 <tr>
-<td style="text-align:center">4000 Slots</td>
+<td style="text-align:center">4,000 Slots</td>
 <td style="text-align:center">14</td>
 <td style="text-align:center">37</td>
 <td style="text-align:center">11x</td>
@@ -1312,7 +1312,7 @@ This time, I will not run the job using on-demand pricing for obvious reasons
 In fact, you can see the same the 2 dips and the tail.</p>
 <p>In our case, the query has only a few and short dips and tail.
 So, we could continue improving performance by simply buying more slots.
-You can see that when we test 4000 slots the job complete faster than with 2000, but it costs more.
+You can see that when we test 4,000 slots the job complete faster than with 2,000, but it costs more.
 This is because the time we save adding more slots is not enough to compensate the idle slots time.</p>
 <h2 id="conclusion">Conclusion</h2>
 <p>In conclusion, flat-rate pricing proved to be enormously beneficial to reduce the cost of our data-intensive job.
