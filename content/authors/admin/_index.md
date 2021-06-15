@@ -10,7 +10,7 @@ authors:
 superuser: true
 
 # Role/position
-role: "Head of Automation<br>Data Platform Engineer"
+role: "Principal Data Platform Engineer"
 
 # Organizations/Affiliations
 organizations:

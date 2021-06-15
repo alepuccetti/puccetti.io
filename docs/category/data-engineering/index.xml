@@ -5,12 +5,564 @@
     <link>https://alepuccetti.github.io/category/data-engineering/</link>
       <atom:link href="https://alepuccetti.github.io/category/data-engineering/index.xml" rel="self" type="application/rss+xml" />
     <description>Data Engineering</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 13 Apr 2021 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 15 Jun 2021 00:00:00 +0000</lastBuildDate>
     <image>
       <url>https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png</url>
       <title>Data Engineering</title>
       <link>https://alepuccetti.github.io/category/data-engineering/</link>
     </image>
+    
+    <item>
+      <title>Slots to the (Wallet) Rescue</title>
+      <link>https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/</link>
+      <pubDate>Tue, 15 Jun 2021 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/</guid>
+      <description>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure &gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./lower_costs.jpeg&#34; &gt;
+
+
+  &lt;img src=&#34;./lower_costs.jpeg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;At &lt;a href=&#34;https://huq.io&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Huq Industries&lt;/a&gt;, we collect and process 30 billions geo-events a month from more than 8 million devices.
+At the time of writing we collected and enriched more than 300 billions events all stored in BigQuery table for a total of about 85 TB.&lt;/p&gt;
+&lt;p&gt;In this blog post, I will demonstrate how we reduced the cost a single expensive job from more than 425$ using on-demand pricing (5$/TB) to just 25$ using flat-rate pricing.&lt;/p&gt;
+&lt;p&gt;Usually, flat-rate pricing is generally used when you want predictable costs and have a stable and continue slots usage.
+However, flat-rate pricing can be leveraged also to reduce the cost of even a single job alone.&lt;/p&gt;
+&lt;p&gt;In this post, I will use a real-world scenario from one of our clients to show how flat-rate pricing helped us saving lots of money when performing this very data-intensive job.&lt;/p&gt;
+&lt;p&gt;For a more detailed explanation of &lt;strong&gt;what&lt;/strong&gt; are and &lt;strong&gt;how&lt;/strong&gt; BigQuery slots work refer to the &lt;a href=&#34;https://cloud.google.com/bigquery/docs/slots&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;official docs&lt;/a&gt;.
+To put it simply, you can think to a BigQuery slot as:&lt;/p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;A virtual CPU used by BigQuery to execute SQL queries.&lt;/p&gt;
+&lt;/blockquote&gt;
+&lt;h2 id=&#34;bigquery-slots-commitment-and-reservation&#34;&gt;BigQuery Slots Commitment and Reservation&lt;/h2&gt;
+&lt;p&gt;Before we start using BigQuery flat-rate, we need to have a quick introduction on how to &lt;strong&gt;provision&lt;/strong&gt; and &lt;strong&gt;allocate&lt;/strong&gt; slots reservations.
+If you already have familiarity with this slots commitment and reservation feel free to skip this section and jump directly to the next part.&lt;/p&gt;
+&lt;p&gt;We will follow the Google &lt;a href=&#34;https://cloud.google.com/bigquery/docs/reservations-get-started&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;best practice&lt;/a&gt; to set up the environment to use slots reservations.
+First, we create a new GCP project to only manage slots and reservation.
+Then, using the &amp;ldquo;Reservation&amp;rdquo; menu from te BigQuery UI, we buy a &lt;strong&gt;Flex&lt;/strong&gt; slots commitment.
+This type of commitment is more expensive than monthly or annual ones, but it can be cancelled any time after 60 seconds.
+Tip: Use the right-hand side widget to get an estimation of hourly/monthly cost of your commitment.&lt;/p&gt;
+&lt;p&gt;Now that we have available slots, we need to create a &lt;strong&gt;reservation&lt;/strong&gt;.
+You can grant to a reservation as many slots you want (up to the number you bought) and you can create as many reservations you like.
+Slots not assigned to any reservation go in the default one. In case they are idle, they can be used by any reservation.&lt;/p&gt;
+&lt;p&gt;The last step is to create an &lt;strong&gt;assignment&lt;/strong&gt; by assigning a reservation to one of our project/folder.
+Now we are ready to run our job using flat-rate pricing instead of on-demand.&lt;/p&gt;
+&lt;h2 id=&#34;the-scenario&#34;&gt;The Scenario&lt;/h2&gt;
+&lt;p&gt;One of our client wants to run analytics on our entire events history,
+however, they have some specific matching criteria for qualifying an event.
+Therefore, the actual data they need is much smaller than our full history table.
+Due to the custom nature of the filtering logic, we had no other option than running a query to select all the qualify events.
+Below, you can find a mock query that could be used to generate the client dataset.&lt;/p&gt;
+&lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/607e91e54a27b7bdb1a9ef3c58cccaa1.js?file=example.sql&#34;&gt;&lt;/script&gt;
+
+&lt;h2 id=&#34;start-small&#34;&gt;Start Small&lt;/h2&gt;
+&lt;p&gt;For simplicity, I will calculate the cost by multiplying the reservation cost per minute and the query duration in minutes.
+This makes the estimations slightly lower than the actual cost because slots are paid also when they are idle.
+However, for our purpose the difference is negligible.&lt;/p&gt;
+&lt;p&gt;Firstly, to test the feasibility of this approach, I run some experiments with a smaller dataset
+(just a month of data ~6.5 TB).&lt;/p&gt;
+&lt;p&gt;The table below shows durations and costs for the job executed using on-demand and using different amount of slots.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Duration (min)&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Cost($)&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Improvement Factor&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;On-Demand&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2:26&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;32.5&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;500 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;5:18&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;1.6&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;20x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;1000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;3:05&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;16x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;1:43&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2.7&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;12x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;4000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;1:06&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2.9&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;11x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;As you can see from the results, using flat-rate pricing reduced the costs significantly.
+In fact, the fewer slots we use, the cheaper the job becomes.
+On the down side, it needs more time to complete, but this is expected.
+The interesting results is that the 2000 and 4000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
+This looks like a win-win situation!!!
+We need to remember that this analysis is valid for our non complex query and it might yield very different results for more complex jobs and workloads.
+I will present different scenarios and their analysis in the following blog posts.&lt;/p&gt;
+&lt;hr&gt;
+&lt;p&gt;Let&amp;rsquo;s go a bit more in the details of the experiments results.&lt;/p&gt;
+&lt;p&gt;I used &lt;a href=&#34;https://bqvisualiser.appspot.com/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;bqvisualiser&lt;/a&gt; to visualize the job progress and estimation of slots usage during execution.
+The top part of the graph shows the &lt;a href=&#34;https://cloud.google.com/bigquery/docs/slots#query_execution_using_slots&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;units of work&lt;/a&gt; that BigQuery needs to perform to complete the query.
+The bottom part of the graph shows the &lt;strong&gt;estimated used slots&lt;/strong&gt; at a certain time during the query execution.&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-on-demand&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/small_on_demand.png&#34; data-caption=&#34;On-Demand&#34;&gt;
+
+
+  &lt;img src=&#34;./images/small_on_demand.png&#34; alt=&#34;small_on_demand&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    On-Demand
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;When using on-demand pricing our slots usage profile shows that it cruises around 2000 slots, but sometimes it bursts to 4000 slots (however, it often uses fewer slots).
+This happens because when using on-demand pricing, the available slots are (loosely) &amp;ldquo;capped&amp;rdquo; to 2000 slots per project.
+However, projects might access to more slots in burst from time to time.&lt;/p&gt;
+&lt;p&gt;The slots usage profile radically change when running the query under a reservation.
+It is clear that the query fully utilizes the available slots for almost 100% of the execution time.
+This is particularly true for the 500 slots test:&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-500-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/small_slots_500.png&#34; data-caption=&#34;500 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/small_slots_500.png&#34; alt=&#34;small_slots_500&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    500 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;It is clear that this query uses all the available slots except for 3 parts: the first 2 dips and the tail.
+The first 2 dips are linked to a repartition and a consequent re-aggregation stages.
+Meanwhile, the tail is due to some workers needing more time to complete their writes.&lt;/p&gt;
+&lt;p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-1000-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/small_slots_1000.png&#34; data-caption=&#34;1,000 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/small_slots_1000.png&#34; alt=&#34;small_slots_1000&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    1,000 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-2000-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/small_slots_2000.png&#34; data-caption=&#34;2,000 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/small_slots_2000.png&#34; alt=&#34;small_slots_2000&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    2,000 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-4000-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/small_slots_4000.png&#34; data-caption=&#34;4,000 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/small_slots_4000.png&#34; alt=&#34;small_slots_4000&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    4,000 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+&lt;/p&gt;
+&lt;p&gt;In general, more slots make the job faster (as long as BigQuery can divide the job in enough work units).
+However, you can see that the job parts that do not fully utilise a small slots reservation will not use more slots even when the reservation is larger.&lt;/p&gt;
+&lt;p&gt;Moreover, the final cost is consistently reduced, even if we end up paying for idling slots.&lt;/p&gt;
+&lt;h2 id=&#34;go-big&#34;&gt;Go Big&lt;/h2&gt;
+&lt;p&gt;Now let&amp;rsquo;s see how the full job performed.
+This time, I will not run the job using on-demand pricing for obvious reasons
+💸💸💸💸💸.&lt;/p&gt;
+&lt;table&gt;
+&lt;thead&gt;
+&lt;tr&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Duration (min)&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Cost($)&lt;/th&gt;
+&lt;th style=&#34;text-align:center&#34;&gt;Improvement Factor&lt;/th&gt;
+&lt;/tr&gt;
+&lt;/thead&gt;
+&lt;tbody&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;On-Demand&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&amp;ndash;&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;425&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;-&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;500 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;75&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;25&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;17x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;1000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;40&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;25&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;17x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;2000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;25&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;33&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;13x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;tr&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;4000 Slots&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;14&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;37&lt;/td&gt;
+&lt;td style=&#34;text-align:center&#34;&gt;11x&lt;/td&gt;
+&lt;/tr&gt;
+&lt;/tbody&gt;
+&lt;/table&gt;
+&lt;p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-500-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/all_time_slots_500.png&#34; data-caption=&#34;500 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/all_time_slots_500.png&#34; alt=&#34;all_time_slots_500&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    500 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-1000-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/all_time_slots_1000.png&#34; data-caption=&#34;1,000 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/all_time_slots_1000.png&#34; alt=&#34;all_time_slots_1000&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    1,000 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-2000-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/all_time_slots_2000.png&#34; data-caption=&#34;2,000 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/all_time_slots_2000.png&#34; alt=&#34;all_time_slots_2000&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    2,000 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-4000-slots&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./images/all_time_slots_4000.png&#34; data-caption=&#34;4,000 Slots&#34;&gt;
+
+
+  &lt;img src=&#34;./images/all_time_slots_4000.png&#34; alt=&#34;all_time_slots_4000&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    4,000 Slots
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+&lt;/p&gt;
+&lt;p&gt;We can see the same pattern in the estimated slots usage graph.
+In fact, you can see the same the 2 dips and the tail.&lt;/p&gt;
+&lt;p&gt;In our case, the query has only a few and short dips and tail.
+So, we could continue improving performance by simply buying more slots.
+You can see that when we test 4000 slots the job complete faster than with 2000, but it costs more.
+This is because the time we save adding more slots is not enough to compensate the idle slots time.&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;In conclusion, flat-rate pricing proved to be enormously beneficial to reduce the cost of our data-intensive job.
+However, beforehand it can be tricky to decide when to use flat-rate or on-demand pricing for a job.
+Intuitively, we can say that a good candidate for flat-rate pricing is a job that:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Will scan lots of data (it will cost lots of money using on-demand pricing).&lt;/li&gt;
+&lt;li&gt;Has a very consistent usage of slots during its execution time.&lt;/li&gt;
+&lt;li&gt;The job doesn&amp;rsquo;t have strict time completion requirements.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;Stay tuned for more in depth experiments and analysis on BigQuery slots and different workloads evaluation.&lt;/p&gt;
+&lt;p&gt;Follow or contact me on Twitter for more stories about data, infrastructure, and automation.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>BigQuery Authorized Views with Terraform</title>
