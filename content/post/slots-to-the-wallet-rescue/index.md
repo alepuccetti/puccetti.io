@@ -1,7 +1,7 @@
 ---
 title: 'Slots to the (Wallet) Rescue'
 subtitle: 'How to save more than 17x in query cost.'
-summary: ''
+summary: 'How to save more than 17x in query cost.'
 authors:
 - admin
 tags:
