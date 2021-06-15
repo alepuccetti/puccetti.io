@@ -34,10 +34,10 @@
   
     
   
-  <meta name="description" content="Managing massive datasets using wildcards.">
+  <meta name="description" content="At Huq Industries, we collect and process 30 billions geo-events a month from more than 8 million devices. At the time of writing we collected and enriched more than 300 billions events all stored in BigQuery table for a total of about 85 TB.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/bigquery-wildcards/">
+  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/">
 
   
 
@@ -299,7 +299,7 @@
   <link rel="icon" type="image/png" href="/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_32x32_fill_lanczos_center_2.png">
   <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_192x192_fill_lanczos_center_2.png">
 
-  <link rel="canonical" href="https://alepuccetti.github.io/post/bigquery-wildcards/">
+  <link rel="canonical" href="https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/">
 
   
   
@@ -318,15 +318,15 @@
   <meta property="twitter:creator" content="@alepuccetti">
   
   <meta property="og:site_name" content="Alessandro Puccetti">
-  <meta property="og:url" content="https://alepuccetti.github.io/post/bigquery-wildcards/">
-  <meta property="og:title" content="BigQuery Wildcards | Alessandro Puccetti">
-  <meta property="og:description" content="Managing massive datasets using wildcards."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png">
+  <meta property="og:url" content="https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/">
+  <meta property="og:title" content="Slots to the (Wallet) Rescue | Alessandro Puccetti">
+  <meta property="og:description" content="At Huq Industries, we collect and process 30 billions geo-events a month from more than 8 million devices. At the time of writing we collected and enriched more than 300 billions events all stored in BigQuery table for a total of about 85 TB."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png">
   <meta property="twitter:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_2.png"><meta property="og:locale" content="en-us">
   
     
-      <meta property="article:published_time" content="2020-01-06T00:00:00&#43;00:00">
+      <meta property="article:published_time" content="2021-06-15T00:00:00&#43;00:00">
     
-    <meta property="article:modified_time" content="2020-01-06T00:00:00&#43;00:00">
+    <meta property="article:modified_time" content="2021-06-15T00:00:00&#43;00:00">
   
 
   
@@ -350,12 +350,12 @@
   "@type": "BlogPosting",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://alepuccetti.github.io/post/bigquery-wildcards/"
+    "@id": "https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/"
   },
-  "headline": "BigQuery Wildcards",
+  "headline": "Slots to the (Wallet) Rescue",
   
-  "datePublished": "2020-01-06T00:00:00Z",
-  "dateModified": "2020-01-06T00:00:00Z",
+  "datePublished": "2021-06-15T00:00:00Z",
+  "dateModified": "2021-06-15T00:00:00Z",
   
   "publisher": {
     "@type": "Organization",
@@ -365,7 +365,7 @@
       "url": "https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_192x192_fill_lanczos_center_2.png"
     }
   },
-  "description": "Managing massive datasets using wildcards."
+  "description": "At Huq Industries, we collect and process 30 billions geo-events a month from more than 8 million devices. At the time of writing we collected and enriched more than 300 billions events all stored in BigQuery table for a total of about 85 TB."
 }
 </script>
 
@@ -383,7 +383,7 @@
 
 
 
-  <title>BigQuery Wildcards | Alessandro Puccetti</title>
+  <title>Slots to the (Wallet) Rescue | Alessandro Puccetti</title>
 
 </head>
 
@@ -699,10 +699,10 @@
   
   
 <div class="article-container pt-3">
-  <h1>BigQuery Wildcards</h1>
+  <h1>Slots to the (Wallet) Rescue</h1>
 
   
-  <p class="page-subtitle">Managing massive datasets using wildcards.</p>
+  <p class="page-subtitle">How to save more than 17x in query cost.</p>
   
 
   
@@ -730,7 +730,7 @@
     
       
     
-    Jan 6, 2020
+    Jun 15, 2021
   </span>
   
 
@@ -739,7 +739,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    2 min read
+    6 min read
   </span>
   
 
@@ -781,55 +781,550 @@
   <div class="article-container">
 
     <div class="article-style">
-      <p>BigQuery supports the &ldquo;*<em>&quot;</em> wildcard to reference multiple tables or files.
-You can leverage this feature to load, extract, and query data across multiple sources, destinations, and tables.
-Let&rsquo;s see what you can do with wildcards with some examples.</p>
-<p>The first thing is definitely loading the data into BigQuery.
-If you deal with a very large amount of data you will have, most likely,
-tens of thousands of files coming from a data pipelines that you want to load into BigQuery.
-Using wildcards, you can easily load data from different files into a single table.</p>
-<pre><code class="language-bash">bq load project_id:dataset_name.table_name gs://my_data/input/prefix/* ./schema.json
-</code></pre>
-<p>Also, this is not limited to only one prefix but you can specify multiple ones for example:</p>
-<pre><code class="language-bash">bq load project_id:dataset_name.table_name gs://my_data/input/prefix_1/* gs://my_data/input/prefix_5/* gs://my_data/input/prefix_25/* ./schema.json
-</code></pre>
-<p>The command above will load all the files matching all the prefixes into the specified table.</p>
-<p>Wildcards can be used in the other direction too.
-Namely, they can be used to export data from BigQuery to GCS.
-This is very useful especially because BigQuery limits exports to a single file only to tables smaller than 1GB.</p>
-<pre><code class="language-bash">bq extract project_id:dataset_name.table_name gs://my_data/extract/prefix/file_prefix_*.json
-</code></pre>
-<p>The previous command will result in multiple files exported into the <em>&ldquo;my_data&rdquo;</em> bucket within the prefix <em>&ldquo;extract/prefix/&quot;</em> and all file names will be:</p>
-<pre><code class="language-bash">file_prefix_000000000000.json
-file_prefix_000000000001.json
-file_prefix_000000000002.json
-…
-file_prefix_000000003792.json
-file_prefix_000000003793.json
-</code></pre>
-<p>The other very useful use of wildcards is evident in queries.
-In fact, you can reference multiple tables in a single query by using <em>&quot;</em>&quot;* to match all the table into the dataset with the same prefix.
-For example, consider you have a collection of tables like:</p>
-<pre><code class="language-bash">my_dataset
-├── events_GB
-...
-├── events_IT
-...
-├── events_US
-...
-</code></pre>
-<p>The following query will return the count per day per country of events of type <em>&ldquo;submit&rdquo;</em> in our dataset.</p>
-<script type="application/javascript" src="https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards.sql"></script>
+      
 
-<p>You can also filter out matched tables using <em>&quot;_table_suffix&rdquo;</em> in the where clause.
-For example, if you are only interested in Germany, France, and Japan just run the following:</p>
-<script type="application/javascript" src="https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards_filtered.sql"></script>
 
-<p>What I personally like the most of using wildcards is that it enables me to design better, simpler,
-and more generic analytics queries as well as ETL jobs.
-The aim of this post was to help you improve your code quality and your productivity.</p>
-<p>If you believe you learnt something new or if you liked the post please Clap.
-Happy query with BigQuery!!!</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure >
+
+
+  <a data-fancybox="" href="./lower_costs.jpeg" >
+
+
+  <img src="./lower_costs.jpeg" alt=""  >
+</a>
+
+
+
+</figure>
+
+<p>At <a href="https://huq.io" target="_blank" rel="noopener">Huq Industries</a>, we collect and process 30 billions geo-events a month from more than 8 million devices.
+At the time of writing we collected and enriched more than 300 billions events all stored in BigQuery table for a total of about 85 TB.</p>
+<p>In this blog post, I will demonstrate how we reduced the cost a single expensive job from more than 425$ using on-demand pricing (5$/TB) to just 25$ using flat-rate pricing.</p>
+<p>Usually, flat-rate pricing is generally used when you want predictable costs and have a stable and continue slots usage.
+However, flat-rate pricing can be leveraged also to reduce the cost of even a single job alone.</p>
+<p>In this post, I will use a real-world scenario from one of our clients to show how flat-rate pricing helped us saving lots of money when performing this very data-intensive job.</p>
+<p>For a more detailed explanation of <strong>what</strong> are and <strong>how</strong> BigQuery slots work refer to the <a href="https://cloud.google.com/bigquery/docs/slots" target="_blank" rel="noopener">official docs</a>.
+To put it simply, you can think to a BigQuery slot as:</p>
+<blockquote>
+<p>A virtual CPU used by BigQuery to execute SQL queries.</p>
+</blockquote>
+<h2 id="bigquery-slots-commitment-and-reservation">BigQuery Slots Commitment and Reservation</h2>
+<p>Before we start using BigQuery flat-rate, we need to have a quick introduction on how to <strong>provision</strong> and <strong>allocate</strong> slots reservations.
+If you already have familiarity with this slots commitment and reservation feel free to skip this section and jump directly to the next part.</p>
+<p>We will follow the Google <a href="https://cloud.google.com/bigquery/docs/reservations-get-started" target="_blank" rel="noopener">best practice</a> to set up the environment to use slots reservations.
+First, we create a new GCP project to only manage slots and reservation.
+Then, using the &ldquo;Reservation&rdquo; menu from te BigQuery UI, we buy a <strong>Flex</strong> slots commitment.
+This type of commitment is more expensive than monthly or annual ones, but it can be cancelled any time after 60 seconds.
+Tip: Use the right-hand side widget to get an estimation of hourly/monthly cost of your commitment.</p>
+<p>Now that we have available slots, we need to create a <strong>reservation</strong>.
+You can grant to a reservation as many slots you want (up to the number you bought) and you can create as many reservations you like.
+Slots not assigned to any reservation go in the default one. In case they are idle, they can be used by any reservation.</p>
+<p>The last step is to create an <strong>assignment</strong> by assigning a reservation to one of our project/folder.
+Now we are ready to run our job using flat-rate pricing instead of on-demand.</p>
+<h2 id="the-scenario">The Scenario</h2>
+<p>One of our client wants to run analytics on our entire events history,
+however, they have some specific matching criteria for qualifying an event.
+Therefore, the actual data they need is much smaller than our full history table.
+Due to the custom nature of the filtering logic, we had no other option than running a query to select all the qualify events.
+Below, you can find a mock query that could be used to generate the client dataset.</p>
+<script type="application/javascript" src="https://gist.github.com/alepuccetti/607e91e54a27b7bdb1a9ef3c58cccaa1.js?file=example.sql"></script>
+
+<h2 id="start-small">Start Small</h2>
+<p>For simplicity, I will calculate the cost by multiplying the reservation cost per minute and the query duration in minutes.
+This makes the estimations slightly lower than the actual cost because slots are paid also when they are idle.
+However, for our purpose the difference is negligible.</p>
+<p>Firstly, to test the feasibility of this approach, I run some experiments with a smaller dataset
+(just a month of data ~6.5 TB).</p>
+<p>The table below shows durations and costs for the job executed using on-demand and using different amount of slots.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center">Duration (min)</th>
+<th style="text-align:center">Cost($)</th>
+<th style="text-align:center">Improvement Factor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">On-Demand</td>
+<td style="text-align:center">2:26</td>
+<td style="text-align:center">32.5</td>
+<td style="text-align:center">-</td>
+</tr>
+<tr>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">500 Slots</td>
+<td style="text-align:center">5:18</td>
+<td style="text-align:center">1.6</td>
+<td style="text-align:center">20x</td>
+</tr>
+<tr>
+<td style="text-align:center">1000 Slots</td>
+<td style="text-align:center">3:05</td>
+<td style="text-align:center">2</td>
+<td style="text-align:center">16x</td>
+</tr>
+<tr>
+<td style="text-align:center">2000 Slots</td>
+<td style="text-align:center">1:43</td>
+<td style="text-align:center">2.7</td>
+<td style="text-align:center">12x</td>
+</tr>
+<tr>
+<td style="text-align:center">4000 Slots</td>
+<td style="text-align:center">1:06</td>
+<td style="text-align:center">2.9</td>
+<td style="text-align:center">11x</td>
+</tr>
+</tbody>
+</table>
+<p>As you can see from the results, using flat-rate pricing reduced the costs significantly.
+In fact, the fewer slots we use, the cheaper the job becomes.
+On the down side, it needs more time to complete, but this is expected.
+The interesting results is that the 2000 and 4000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
+This looks like a win-win situation!!!
+We need to remember that this analysis is valid for our non complex query and it might yield very different results for more complex jobs and workloads.
+I will present different scenarios and their analysis in the following blog posts.</p>
+<hr>
+<p>Let&rsquo;s go a bit more in the details of the experiments results.</p>
+<p>I used <a href="https://bqvisualiser.appspot.com/" target="_blank" rel="noopener">bqvisualiser</a> to visualize the job progress and estimation of slots usage during execution.
+The top part of the graph shows the <a href="https://cloud.google.com/bigquery/docs/slots#query_execution_using_slots" target="_blank" rel="noopener">units of work</a> that BigQuery needs to perform to complete the query.
+The bottom part of the graph shows the <strong>estimated used slots</strong> at a certain time during the query execution.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-on-demand">
+
+
+  <a data-fancybox="" href="./images/small_on_demand.png" data-caption="On-Demand">
+
+
+  <img src="./images/small_on_demand.png" alt="small_on_demand"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    On-Demand
+  </figcaption>
+
+
+</figure>
+
+<p>When using on-demand pricing our slots usage profile shows that it cruises around 2000 slots, but sometimes it bursts to 4000 slots (however, it often uses fewer slots).
+This happens because when using on-demand pricing, the available slots are (loosely) &ldquo;capped&rdquo; to 2000 slots per project.
+However, projects might access to more slots in burst from time to time.</p>
+<p>The slots usage profile radically change when running the query under a reservation.
+It is clear that the query fully utilizes the available slots for almost 100% of the execution time.
+This is particularly true for the 500 slots test:</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-500-slots">
+
+
+  <a data-fancybox="" href="./images/small_slots_500.png" data-caption="500 Slots">
+
+
+  <img src="./images/small_slots_500.png" alt="small_slots_500"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    500 Slots
+  </figcaption>
+
+
+</figure>
+
+<p>It is clear that this query uses all the available slots except for 3 parts: the first 2 dips and the tail.
+The first 2 dips are linked to a repartition and a consequent re-aggregation stages.
+Meanwhile, the tail is due to some workers needing more time to complete their writes.</p>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-1000-slots">
+
+
+  <a data-fancybox="" href="./images/small_slots_1000.png" data-caption="1,000 Slots">
+
+
+  <img src="./images/small_slots_1000.png" alt="small_slots_1000"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    1,000 Slots
+  </figcaption>
+
+
+</figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-2000-slots">
+
+
+  <a data-fancybox="" href="./images/small_slots_2000.png" data-caption="2,000 Slots">
+
+
+  <img src="./images/small_slots_2000.png" alt="small_slots_2000"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    2,000 Slots
+  </figcaption>
+
+
+</figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-4000-slots">
+
+
+  <a data-fancybox="" href="./images/small_slots_4000.png" data-caption="4,000 Slots">
+
+
+  <img src="./images/small_slots_4000.png" alt="small_slots_4000"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    4,000 Slots
+  </figcaption>
+
+
+</figure>
+</p>
+<p>In general, more slots make the job faster (as long as BigQuery can divide the job in enough work units).
+However, you can see that the job parts that do not fully utilise a small slots reservation will not use more slots even when the reservation is larger.</p>
+<p>Moreover, the final cost is consistently reduced, even if we end up paying for idling slots.</p>
+<h2 id="go-big">Go Big</h2>
+<p>Now let&rsquo;s see how the full job performed.
+This time, I will not run the job using on-demand pricing for obvious reasons
+💸💸💸💸💸.</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"></th>
+<th style="text-align:center">Duration (min)</th>
+<th style="text-align:center">Cost($)</th>
+<th style="text-align:center">Improvement Factor</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">On-Demand</td>
+<td style="text-align:center">&ndash;</td>
+<td style="text-align:center">425</td>
+<td style="text-align:center">-</td>
+</tr>
+<tr>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+<td style="text-align:center"></td>
+</tr>
+<tr>
+<td style="text-align:center">500 Slots</td>
+<td style="text-align:center">75</td>
+<td style="text-align:center">25</td>
+<td style="text-align:center">17x</td>
+</tr>
+<tr>
+<td style="text-align:center">1000 Slots</td>
+<td style="text-align:center">40</td>
+<td style="text-align:center">25</td>
+<td style="text-align:center">17x</td>
+</tr>
+<tr>
+<td style="text-align:center">2000 Slots</td>
+<td style="text-align:center">25</td>
+<td style="text-align:center">33</td>
+<td style="text-align:center">13x</td>
+</tr>
+<tr>
+<td style="text-align:center">4000 Slots</td>
+<td style="text-align:center">14</td>
+<td style="text-align:center">37</td>
+<td style="text-align:center">11x</td>
+</tr>
+</tbody>
+</table>
+<p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-500-slots">
+
+
+  <a data-fancybox="" href="./images/all_time_slots_500.png" data-caption="500 Slots">
+
+
+  <img src="./images/all_time_slots_500.png" alt="all_time_slots_500"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    500 Slots
+  </figcaption>
+
+
+</figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-1000-slots">
+
+
+  <a data-fancybox="" href="./images/all_time_slots_1000.png" data-caption="1,000 Slots">
+
+
+  <img src="./images/all_time_slots_1000.png" alt="all_time_slots_1000"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    1,000 Slots
+  </figcaption>
+
+
+</figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-2000-slots">
+
+
+  <a data-fancybox="" href="./images/all_time_slots_2000.png" data-caption="2,000 Slots">
+
+
+  <img src="./images/all_time_slots_2000.png" alt="all_time_slots_2000"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    2,000 Slots
+  </figcaption>
+
+
+</figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-4000-slots">
+
+
+  <a data-fancybox="" href="./images/all_time_slots_4000.png" data-caption="4,000 Slots">
+
+
+  <img src="./images/all_time_slots_4000.png" alt="all_time_slots_4000"  >
+</a>
+
+
+  
+  
+  <figcaption>
+    4,000 Slots
+  </figcaption>
+
+
+</figure>
+</p>
+<p>We can see the same pattern in the estimated slots usage graph.
+In fact, you can see the same the 2 dips and the tail.</p>
+<p>In our case, the query has only a few and short dips and tail.
+So, we could continue improving performance by simply buying more slots.
+You can see that when we test 4000 slots the job complete faster than with 2000, but it costs more.
+This is because the time we save adding more slots is not enough to compensate the idle slots time.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In conclusion, flat-rate pricing proved to be enormously beneficial to reduce the cost of our data-intensive job.
+However, beforehand it can be tricky to decide when to use flat-rate or on-demand pricing for a job.
+Intuitively, we can say that a good candidate for flat-rate pricing is a job that:</p>
+<ol>
+<li>Will scan lots of data (it will cost lots of money using on-demand pricing).</li>
+<li>Has a very consistent usage of slots during its execution time.</li>
+<li>The job doesn&rsquo;t have strict time completion requirements.</li>
+</ol>
+<p>Stay tuned for more in depth experiments and analysis on BigQuery slots and different workloads evaluation.</p>
+<p>Follow or contact me on Twitter for more stories about data, infrastructure, and automation.</p>
 
     </div>
 
@@ -859,7 +1354,7 @@ Happy query with BigQuery!!!</p>
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/bigquery-wildcards/&amp;text=BigQuery%20Wildcards" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/&amp;text=Slots%20to%20the%20%28Wallet%29%20Rescue" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -872,7 +1367,7 @@ Happy query with BigQuery!!!</p>
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/bigquery-wildcards/&amp;t=BigQuery%20Wildcards" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/&amp;t=Slots%20to%20the%20%28Wallet%29%20Rescue" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook"></i>
         </a>
       </li>
@@ -885,7 +1380,7 @@ Happy query with BigQuery!!!</p>
       
       
       <li>
-        <a href="mailto:?subject=BigQuery%20Wildcards&amp;body=https://alepuccetti.github.io/post/bigquery-wildcards/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=Slots%20to%20the%20%28Wallet%29%20Rescue&amp;body=https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -898,7 +1393,7 @@ Happy query with BigQuery!!!</p>
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/bigquery-wildcards/&amp;title=BigQuery%20Wildcards" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/slots-to-the-wallet-rescue/&amp;title=Slots%20to%20the%20%28Wallet%29%20Rescue" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -1070,7 +1565,7 @@ Happy query with BigQuery!!!</p>
     <h3>Related</h3>
     <ul>
       
-      <li><a href="/post/slots-to-the-wallet-rescue/">Slots to the (Wallet) Rescue</a></li>
+      <li><a href="/post/bigquery-jounrey/">A Journey Through Big Data Using Google BigQuery</a></li>
       
       <li><a href="/post/bigquery-authorized-views-with-terraform/">BigQuery Authorized Views with Terraform</a></li>
       
