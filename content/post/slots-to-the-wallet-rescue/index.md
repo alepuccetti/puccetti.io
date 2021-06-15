@@ -73,19 +73,19 @@ Firstly, to test the feasibility of this approach, I run some experiments with a
 
 The table below shows durations and costs for the job executed using on-demand and using different amount of slots.
 
-|              | Duration (min) | Cost($) | Improvement Factor |
-|:------------:|:--------------:|:-------:|:------------------:|
-|   On-Demand  |      2:26      |   32.5  |          -         |
-|              |                |         |                    |
-|   500 Slots  |      5:18      |   1.6   |         20x        |
-|  1000 Slots  |      3:05      |    2    |         16x        |
-|  2000 Slots  |      1:43      |   2.7   |         12x        |
-|  4000 Slots  |      1:06      |   2.9   |         11x        |
+|               | Duration (min) | Cost($) | Improvement Factor |
+|:-------------:|:--------------:|:-------:|:------------------:|
+|   On-Demand   |      2:26      |   32.5  |          -         |
+|               |                |         |                    |
+|   500 Slots   |      5:18      |   1.6   |         20x        |
+|  1,000 Slots  |      3:05      |    2    |         16x        |
+|  2,000 Slots  |      1:43      |   2.7   |         12x        |
+|  4,000 Slots  |      1:06      |   2.9   |         11x        |
 
 As you can see from the results, using flat-rate pricing reduced the costs significantly.
 In fact, the fewer slots we use, the cheaper the job becomes.
 On the down side, it needs more time to complete, but this is expected.
-The interesting results is that the 2000 and 4000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
+The interesting results is that the 2,000 and 4,000 slots tests showed not only a similar decrease in cost, but also and improvement in performance.
 This looks like a win-win situation!!!
 We need to remember that this analysis is valid for our non complex query and it might yield very different results for more complex jobs and workloads.
 I will present different scenarios and their analysis in the following blog posts.
@@ -100,8 +100,8 @@ The bottom part of the graph shows the **estimated used slots** at a certain tim
 
 {{< figure src="./images/small_on_demand.png" title="On-Demand" alt="small_on_demand">}}
 
-When using on-demand pricing our slots usage profile shows that it cruises around 2000 slots, but sometimes it bursts to 4000 slots (however, it often uses fewer slots).
-This happens because when using on-demand pricing, the available slots are (loosely) "capped" to 2000 slots per project.
+When using on-demand pricing our slots usage profile shows that it cruises around 2,000 slots, but sometimes it bursts to 4,000 slots (however, it often uses fewer slots).
+This happens because when using on-demand pricing, the available slots are (loosely) "capped" to 2,000 slots per project.
 However, projects might access to more slots in burst from time to time.
 
 The slots usage profile radically change when running the query under a reservation.
@@ -130,14 +130,14 @@ Now let's see how the full job performed.
 This time, I will not run the job using on-demand pricing for obvious reasons
 :money_with_wings::money_with_wings::money_with_wings::money_with_wings::money_with_wings:.
 
-|              | Duration (min) | Cost($) | Improvement Factor |
-|:------------:|:--------------:|:-------:|:------------------:|
-|   On-Demand  |       --       |   425   |          -         |
-|              |                |         |                    |
-|   500 Slots  |       75       |    25   |         17x        |
-|  1000 Slots  |       40       |    25   |         17x        |
-|  2000 Slots  |       25       |    33   |         13x        |
-|  4000 Slots  |       14       |    37   |         11x        |
+|               | Duration (min) | Cost($) | Improvement Factor |
+|:-------------:|:--------------:|:-------:|:------------------:|
+|   On-Demand   |       --       |   425   |          -         |
+|               |                |         |                    |
+|   500 Slots   |       75       |    25   |         17x        |
+|  1,000 Slots  |       40       |    25   |         17x        |
+|  2,000 Slots  |       25       |    33   |         13x        |
+|  4,000 Slots  |       14       |    37   |         11x        |
 
 {{< figure src="./images/all_time_slots_500.png" title="500 Slots" alt="all_time_slots_500">}}
 {{< figure src="./images/all_time_slots_1000.png" title="1,000 Slots" alt="all_time_slots_1000">}}
@@ -149,7 +149,7 @@ In fact, you can see the same the 2 dips and the tail.
 
 In our case, the query has only a few and short dips and tail.
 So, we could continue improving performance by simply buying more slots.
-You can see that when we test 4000 slots the job complete faster than with 2000, but it costs more.
+You can see that when we test 4,000 slots the job complete faster than with 2,000, but it costs more.
 This is because the time we save adding more slots is not enough to compensate the idle slots time.
 
 
