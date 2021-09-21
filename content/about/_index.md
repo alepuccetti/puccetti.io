@@ -8,7 +8,7 @@ I love travelling and meeting new people from different cultures, and I enjoy ha
 
 ## What am I up to now?
 
-I am data platform engineer at with a passion for automation.
+I am a data platform engineer with a passion for automation.
 One of my personal motto is *"If you have to do it more than three times you’ve gotta automate it"*.
 I currently work at **[Huq Industries](https://huq.io)** (from 2017) in London as Principal Data Platform Engineer,
 where I design and build our infrastructure to manage and process hundreds of billions of geospatial events.
