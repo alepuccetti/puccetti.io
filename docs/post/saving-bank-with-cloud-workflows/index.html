@@ -34,10 +34,10 @@
   
     
   
-  <meta name="description" content="Improving efficient in executing millions of short living tasks.">
+  <meta name="description" content="Optimize orchestration with Cloud Workflows.">
 
   
-  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/composer-short-living-tasks/">
+  <link rel="alternate" hreflang="en-us" href="https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/">
 
   
 
@@ -299,7 +299,7 @@
   <link rel="icon" type="image/png" href="/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_32x32_fill_lanczos_center_3.png">
   <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_192x192_fill_lanczos_center_3.png">
 
-  <link rel="canonical" href="https://alepuccetti.github.io/post/composer-short-living-tasks/">
+  <link rel="canonical" href="https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/">
 
   
   
@@ -318,15 +318,15 @@
   <meta property="twitter:creator" content="@alepuccetti">
   
   <meta property="og:site_name" content="Alessandro Puccetti">
-  <meta property="og:url" content="https://alepuccetti.github.io/post/composer-short-living-tasks/">
-  <meta property="og:title" content="Google Cloud Composer: Overcoming The Short-living Tasks Problem | Alessandro Puccetti">
-  <meta property="og:description" content="Improving efficient in executing millions of short living tasks."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_3.png">
+  <meta property="og:url" content="https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/">
+  <meta property="og:title" content="Saving Bank with Cloud Workflows | Alessandro Puccetti">
+  <meta property="og:description" content="Optimize orchestration with Cloud Workflows."><meta property="og:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_3.png">
   <meta property="twitter:image" content="https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_3.png"><meta property="og:locale" content="en-us">
   
     
-      <meta property="article:published_time" content="2019-07-15T00:00:00&#43;00:00">
+      <meta property="article:published_time" content="2022-03-24T00:00:00&#43;00:00">
     
-    <meta property="article:modified_time" content="2019-07-15T00:00:00&#43;00:00">
+    <meta property="article:modified_time" content="2022-03-24T00:00:00&#43;00:00">
   
 
   
@@ -350,12 +350,12 @@
   "@type": "BlogPosting",
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://alepuccetti.github.io/post/composer-short-living-tasks/"
+    "@id": "https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/"
   },
-  "headline": "Google Cloud Composer: Overcoming The Short-living Tasks Problem",
+  "headline": "Saving Bank with Cloud Workflows",
   
-  "datePublished": "2019-07-15T00:00:00Z",
-  "dateModified": "2019-07-15T00:00:00Z",
+  "datePublished": "2022-03-24T00:00:00Z",
+  "dateModified": "2022-03-24T00:00:00Z",
   
   "publisher": {
     "@type": "Organization",
@@ -365,7 +365,7 @@
       "url": "https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_192x192_fill_lanczos_center_3.png"
     }
   },
-  "description": "Improving efficient in executing millions of short living tasks."
+  "description": "Optimize orchestration with Cloud Workflows."
 }
 </script>
 
@@ -383,7 +383,7 @@
 
 
 
-  <title>Google Cloud Composer: Overcoming The Short-living Tasks Problem | Alessandro Puccetti</title>
+  <title>Saving Bank with Cloud Workflows | Alessandro Puccetti</title>
 
 </head>
 
@@ -699,10 +699,10 @@
   
   
 <div class="article-container pt-3">
-  <h1>Google Cloud Composer: Overcoming The Short-living Tasks Problem</h1>
+  <h1>Saving Bank with Cloud Workflows</h1>
 
   
-  <p class="page-subtitle">Improving efficient in executing millions of short living tasks.</p>
+  <p class="page-subtitle">Optimize orchestration with Cloud Workflows.</p>
   
 
   
@@ -730,7 +730,7 @@
     
       
     
-    Jul 15, 2019
+    Mar 24, 2022
   </span>
   
 
@@ -739,7 +739,7 @@
   
   <span class="middot-divider"></span>
   <span class="article-reading-time">
-    5 min read
+    4 min read
   </span>
   
 
@@ -781,7 +781,7 @@
   <div class="article-container">
 
     <div class="article-style">
-      
+      <p>“Workflows is a fully-managed orchestration platform that executes services in an order that you define”.</p>
 
 
 
@@ -799,211 +799,60 @@
 
 
 
-<figure id="figure-google-cloud-composer">
+
+<figure id="figure-workflow">
 
 
-  <a data-fancybox="" href="./gcp_airflow_composer.png" data-caption="Google Cloud Composer">
+  <a data-fancybox="" href="./workflow_wood.jpeg" data-caption="Workflow">
 
 
-  <img src="./gcp_airflow_composer.png" alt=""  >
+  <img src="./workflow_wood.jpeg" alt=""  >
 </a>
 
 
   
   
   <figcaption>
-    Google Cloud Composer
+    Workflow
   </figcaption>
 
 
 </figure>
 
-<h2 id="introduction">Introduction</h2>
-<p><a href="https://cloud.google.com/composer" target="_blank" rel="noopener">Google Cloud Composer</a> is Google Cloud Platform product that helps you manage complex workflows with ease.</p>
-<p>It is built on top of <a href="https://airflow.apache.org/" target="_blank" rel="noopener">Apache Airflow</a> and is a fully managed service that leverages other GCP products
-like Cloud SQL, GCS, Kubernetes Engine, Stackdriver, Cloud SQL and Identity Aware Proxies.</p>
-<p>You don&rsquo;t have to worry about provisioning and dev-ops, so you can focus on your core business logic and let Google take care of the rest.
-With Airflow it&rsquo;s easy to create, schedule, and monitor pipelines that span both cloud and on-premises data centres.
-With a vast selection of <em>&ldquo;Operators&rdquo;</em>, you can define pipelines natively in Python with just a few lines of code,
-and connect to several cloud providers or on-premises instances.
-If you don&rsquo;t find the operator that fits your needs, it&rsquo;s incredibly easy to create your own and import it.
-If you want to learn more about Apache Airflow, refer to the official <a href="https://airflow.apache.org/" target="_blank" rel="noopener">docs</a>.</p>
-<h2 id="running-short-living-tasks">Running short-living tasks</h2>
-<p>Airflow is a great tool, but as is often the case with high-level tools,
-it can introduce overheads when compared to lower-level implementations of the same operation.
-To get an idea of the overhead that Airflow could introduce,
-we can analyse the <a href="https://cloud.google.com/composer/docs/tutorials/health-check" target="_blank" rel="noopener">health-check example</a> and run it on a Cloud Composer instance.
-The health-check DAG consists of a single bash operator that executes a simple command ( <code>echo ENVIRONMENT_NAME</code>).
-The following screenshot shows 5 runs of this workflow and returns run-times of 3.6 and 5 seconds.
-As this scale linearly across multiple invocations, the lag becomes a real problem if - like us - you&rsquo;re running thousands of them.
-To validate this, let&rsquo;s also measure how much time the same command run for if executed directly from the command line.</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<figure id="figure-echo-task-information-from-airflow-ui">
-
-
-  <a data-fancybox="" href="./airflow_tasks_view.png" data-caption="echo task information from Airflow UI">
-
-
-  <img src="./airflow_tasks_view.png" alt=""  >
-</a>
-
-
-  
-  
-  <figcaption>
-    echo task information from Airflow UI
-  </figcaption>
-
-
-</figure>
-
-<pre><code class="language-bash"># time echo my-awesome-string
-
-real    0m0.000s
-user    0m0.000s
-sys     0m0.000s
-</code></pre>
-<p>As expected <code>echo</code> is blazing fast - and even trying to measure its execution time with the standard implementation of <code>time</code> does not cut it.
-We could recompile the kernel with <code>CONFIG_HIGH_RES_TIMERS=y</code> - but who has time for that!
-So to find out, let&rsquo;s use <code>date</code> with nanosecond precision (keep in mind that in this way the measure will be slightly overestimated).</p>
-<pre><code># date +&quot;%9N&quot;; echo my-awesome-string ; date +&quot;%9N&quot;
-571368370
-my-awesome-string
-573152179
-</code></pre>
-<p>This output is the decimal part of the date-stamp expressed in nanoseconds, so to get the elapsed time the equation is:</p>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<figure id="figure-single-task-time">
-
-
-  <a data-fancybox="" href="./single_task_time.png" data-caption="Single Task Time">
-
-
-  <img src="./single_task_time.png" alt=""  >
-</a>
-
-
-  
-  
-  <figcaption>
-    Single Task Time
-  </figcaption>
-
-
-</figure>
-
-<h2 id="a-more-realistic-yet-simple-pipeline">A more realistic, yet simple pipeline</h2>
-<p>Now that the results are in, it is pretty clear that the actual time needed to run the <code>echo</code> command is irrelevant
-compared with the duration time of the corresponding Airflow task.
-So in this case, we can say that Airflow introduces an overhead of about 4 seconds.</p>
-<p>Let&rsquo;s apply these findings to a more real-world example. Let&rsquo;s imagine we have a pipeline made of 4 tasks:</p>
-<ol>
-<li>Run a query on BigQuery using the BigQuery operator.</li>
-<li>Export the data to GCS.</li>
-<li>Compose the exported file into a single file.</li>
-<li>Copy the composed file to S3.</li>
-</ol>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<figure id="figure-sample-pipeline">
-
-
-  <a data-fancybox="" href="./pipeline_diagram.png" data-caption="Sample Pipeline">
-
-
-  <img src="./pipeline_diagram.png" alt=""  >
-</a>
-
-
-  
-  
-  <figcaption>
-    Sample Pipeline
-  </figcaption>
-
-
-</figure>
-
-<p>In our world, this pipeline runs daily for each country (of which we cover almost 250), which results in 1,000 tasks per daily run.
-It takes just a few minutes to execute this operation via a simple bash script because each operation runs for just a few seconds.
-Using Airflow however, this pipeline takes about an hour to complete.
-When running a backfill job over 3 years of data across 3 different instances of this pipeline,
-we end up with more than 3 millions tasks to execute, and having so many tasks to manage at the same time creates an avalanche effect.
-This overwhelms the system and causes problems in getting tasks to schedule, queue, and run.</p>
-<p>To achieve our aim while invoking fewer tasks, we accepted a reduction in the granularity of execution and parallelism
-but maintained the automation capabilities offered by Airflow.
-We were able to tune this developing an Airflow plugin called Chains, which can be found in the <a href="https://github.com/huq-industries/airflow-plugins" target="_blank" rel="noopener">airflow-plugins</a> repository.</p>
-<p>NB. If you have built a custom operator or plugins that you want to share, you can do that by submitting a PR to that repository.</p>
-<h1 id="the-chain-airflow-plugin">The Chain Airflow plugin</h1>
-<p>The Chain plugin offers 2 operators that you can use to chain together a set of operations:</p>
-<ul>
-<li><code>BigQueryChainOperator</code></li>
-<li><code>BigQueryToCloudStorageChainOperator</code></li>
-</ul>
-<p>These operators are based on the corresponding official ones ( <em>BigQueryOperator</em> and <em>BigQueryToCloudStorageOperator</em>) with just a few simple modifications.
-They can take lists of values instead of single values as parameters, and will then loop on the list to run all the operation in sequence.</p>
-<p>This solution trades parallelism and granularity in favour of reducing the number of tasks bundling together multiple operations into a single Airflow task.
-Using these operators in our example pipeline, we were able to bundle the countries
-into groups and adjust the trade-off between parallelism and the total number of Airflow tasks.
-In our case, by using Chains and partitioning our countries into 7 groups,
-we were able to reduce the number of Airflow tasks by a factor of 35.</p>
-<h1 id="conclusions">Conclusions</h1>
-<p>The results include better performances in both the single-day and full historical backfill use-cases.
-Single days run in less than 12 minutes vs.
-60 minutes <em>(a 5x improvement)</em>.
-Running the 3-year backfill for our 3 different types of pipeline finish in less than a day instead of an estimated 3 months <em>(90x improvement)</em>!
-This helps to confirm that the problem was indeed the Airflow per-task overhead.</p>
-<p>Of course, this is somewhat expected, as Airflow is not designed to be a real-time system and is really designed for managing larger and more complex pipelines.</p>
+<p>In this blogpost, I will show you how I was able to increase performance, reduce cost, and improve code quality by migrating our ETL orchestration from Cloud Composer to Cloud workflows.</p>
+<h2 id="the-journey">The Journey</h2>
+<p>I am a die-hard fan of managed and serverless services.
+That’s because they allow me to spend more time on developing interesting projects instead of maintaining infrastructure (boring!).</p>
+<p>Few years ago, at Huq Industries, we were redesigning our infrastructure by using BigQuery and Dataflow for our analytics and batch processing.
+During this process, we also needed to strengthen the orchestration and scheduling of our ETLs and data delivery processes.
+After evaluating different solutions, we decided to implement our orchestration with Cloud Composer (fully managed Apache Airflow solution from Google Cloud).
+I knew from the beginning that Airflow would have been an overkill for our needs.
+In particular because we don’t process data locally on the Airflow cluster but only via external services like Dataflow and BigQuery.
+However, I wanted to have the peace of mind of a fully-managed solution and an easy-to-use system.</p>
+<p>Although Cloud Composer has been great for day-to-day operation, it also caused some pain along the way, especially when I needed to re-run data pipelines spanning across a few years (see my previous blog post regarding Airflow short-living tasks).
+Lastly, having a cluster always up and running when you use it only a few hours a day is quite the waste of resources, but it was necessary for the business operations.</p>
+<h2 id="the-dawn-of-serverless-orchestration">The Dawn of Serverless Orchestration</h2>
+<p>When Google announced Cloud Workflows, I was very excited because I saw from the start that it would have been perfect for us.
+So, I decided to take Cloud Workflows out for a spin.</p>
+<p>I started migrating the data pipelines and data export, and, to my pleasant surprise, the migration was incredibly fast and the final result was a much <strong>better code</strong> base.
+One could  describe it as “directly to the point”.
+This new implementation drastically improved code readability, maintainability, and reusability.
+The second benefit was the ludicrous increase in end-to-end performance.
+In fact, before Cloud Workflows, a daily task needed about 30 minutes to complete, now it needs only 4 minutes (~8X faster).</p>
+<p>This speed improvement is even greater when running full history exports, while before it took almost a month, now it takes less than a working day (<strong>~40X</strong>).
+I want to highlight that I did not do any optimization to the external ETL jobs, so the performance improvements can all be attributed to Cloud Workflows.</p>
+<p>The main reason for this incredible improvement is that the external tasks are quick compared to the scheduling and instantiating time of Airflow tasks.
+Cloud Workflows <strong>remove completely this non-processing time overhead</strong>, so now the pipelines only last the time needed by the external service to complete.
+A little drawback is that Cloud Workflows does not provide scheduling as a native feature like Airflow. On the other hand, it is incredibly simple to schedule your Workflows using Cloud Scheduler.</p>
+<p>The last, but definitely not least, advantage is the cost saving.
+To be able to meet the clients&rsquo; needs, we had to keep the Airflow cluster running 24/7 (even if tasks had about 3 hours of runtime per day) costing about 900$/month.
+With Cloud workflows, per step pricing model you just pay for how many “actions” you execute.
+For this reason, the <strong>cost dropped by several orders of magnitude</strong>. Running the daily tasks with Cloud workflows costs us 0.05$ per day (1.5$/month) which is a cost reduction of <strong>600X</strong>.
+This makes the new system almost running for free.
+The cost saving is staggering even for the full history re-running example, which boils down to just 70$.</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>In conclusion, Cloud Workflows is the perfect match. It allows you to create simple and clear orchestration logic with amazing performance improvement and cost reduction.
+At the moment of writing, Cloud Workflows is still a fairly new product in active development but it’s improving at a very high pace.</p>
 
     </div>
 
@@ -1033,7 +882,7 @@ This helps to confirm that the problem was indeed the Airflow per-task overhead.
       
       
       <li>
-        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/composer-short-living-tasks/&amp;text=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem" target="_blank" rel="noopener" class="share-btn-twitter">
+        <a href="https://twitter.com/intent/tweet?url=https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/&amp;text=Saving%20Bank%20with%20Cloud%20Workflows" target="_blank" rel="noopener" class="share-btn-twitter">
           <i class="fab fa-twitter"></i>
         </a>
       </li>
@@ -1046,7 +895,7 @@ This helps to confirm that the problem was indeed the Airflow per-task overhead.
       
       
       <li>
-        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/composer-short-living-tasks/&amp;t=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem" target="_blank" rel="noopener" class="share-btn-facebook">
+        <a href="https://www.facebook.com/sharer.php?u=https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/&amp;t=Saving%20Bank%20with%20Cloud%20Workflows" target="_blank" rel="noopener" class="share-btn-facebook">
           <i class="fab fa-facebook"></i>
         </a>
       </li>
@@ -1059,7 +908,7 @@ This helps to confirm that the problem was indeed the Airflow per-task overhead.
       
       
       <li>
-        <a href="mailto:?subject=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem&amp;body=https://alepuccetti.github.io/post/composer-short-living-tasks/" target="_blank" rel="noopener" class="share-btn-email">
+        <a href="mailto:?subject=Saving%20Bank%20with%20Cloud%20Workflows&amp;body=https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/" target="_blank" rel="noopener" class="share-btn-email">
           <i class="fas fa-envelope"></i>
         </a>
       </li>
@@ -1072,7 +921,7 @@ This helps to confirm that the problem was indeed the Airflow per-task overhead.
       
       
       <li>
-        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/composer-short-living-tasks/&amp;title=Google%20Cloud%20Composer:%20Overcoming%20The%20Short-living%20Tasks%20Problem" target="_blank" rel="noopener" class="share-btn-linkedin">
+        <a href="https://www.linkedin.com/shareArticle?url=https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/&amp;title=Saving%20Bank%20with%20Cloud%20Workflows" target="_blank" rel="noopener" class="share-btn-linkedin">
           <i class="fab fa-linkedin-in"></i>
         </a>
       </li>
@@ -1244,7 +1093,7 @@ This helps to confirm that the problem was indeed the Airflow per-task overhead.
     <h3>Related</h3>
     <ul>
       
-      <li><a href="/post/saving-bank-with-cloud-workflows/">Saving Bank with Cloud Workflows</a></li>
+      <li><a href="/post/composer-short-living-tasks/">Google Cloud Composer: Overcoming The Short-living Tasks Problem</a></li>
       
       <li><a href="/post/slots-to-the-wallet-rescue/">Slots to the (Wallet) Rescue</a></li>
       

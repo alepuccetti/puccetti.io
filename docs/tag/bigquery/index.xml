@@ -860,7 +860,7 @@ Select the dataset you want to create your table in and click create table.
 In the table creation menu, select as source &amp;ldquo;Google Cloud Storage&amp;rdquo;, CSV as format, and add the prefix of the data that you want to be the sources of the table (remember that you can use wildcard to say to BigQuery to select all the files within the prefix).
 Choose your table name (in this example we will use &amp;ldquo;s3_raw_logs_external&amp;rdquo;) and because we do not want to actually load the data, we need to select &amp;ldquo;External table&amp;rdquo; in &amp;ldquo;Table type&amp;rdquo;.
 In the schema section add a single column called &amp;ldquo;text&amp;rdquo; of type STRING.
-Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to be &amp;ldquo;Custom&amp;rdquo; and insert s character that should never be present (e.g. &amp;ldquo;§&amp;quot;). You can leave the other options with their default values and click &amp;ldquo;create&amp;rdquo;.&lt;/p&gt;
+Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to be &amp;ldquo;Custom&amp;rdquo; and insert s character that should never be present (e.g. &amp;ldquo;§&amp;rdquo;). You can leave the other options with their default values and click &amp;ldquo;create&amp;rdquo;.&lt;/p&gt;
 &lt;p&gt;Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.&lt;/p&gt;
 &lt;h2 id=&#34;transform-raw-logs-into-tabular-format&#34;&gt;Transform raw logs into tabular format&lt;/h2&gt;
 &lt;p&gt;As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &amp;ldquo;\&amp;rdquo; instead of &amp;ldquo;&amp;quot; because we need to escape when defining the function.&lt;/p&gt;
@@ -978,7 +978,7 @@ Do you want to try other locations and test the differences yourself? You can us
 &lt;figure id=&#34;figure-huq-gismaphttpgismaphuqio&#34;&gt;
 
 
-  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34; target=&amp;#34;_blank&amp;#34; rel=&amp;#34;noopener&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
 
 
   &lt;img src=&#34;./huq_gismap_london_m25.jpeg&#34; alt=&#34;&#34;  &gt;
@@ -988,7 +988,7 @@ Do you want to try other locations and test the differences yourself? You can us
   
   
   &lt;figcaption&gt;
-    &lt;a href=&#34;http://gismap.huq.io/&#34;&gt;Huq GisMap&lt;/a&gt;
+    &lt;a href=&#34;http://gismap.huq.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Huq GisMap&lt;/a&gt;
   &lt;/figcaption&gt;
 
 
@@ -1134,7 +1134,7 @@ It is free, it does not need to change any of your queries and it will make them
       <link>https://alepuccetti.github.io/post/bigquery-wildcards/</link>
       <pubDate>Mon, 06 Jan 2020 00:00:00 +0000</pubDate>
       <guid>https://alepuccetti.github.io/post/bigquery-wildcards/</guid>
-      <description>&lt;p&gt;BigQuery supports the &amp;ldquo;*&lt;em&gt;&amp;quot;&lt;/em&gt; wildcard to reference multiple tables or files.
+      <description>&lt;p&gt;BigQuery supports the &amp;ldquo;*&lt;em&gt;&amp;rdquo;&lt;/em&gt; wildcard to reference multiple tables or files.
 You can leverage this feature to load, extract, and query data across multiple sources, destinations, and tables.
 Let&amp;rsquo;s see what you can do with wildcards with some examples.&lt;/p&gt;
 &lt;p&gt;The first thing is definitely loading the data into BigQuery.
@@ -1152,7 +1152,7 @@ Namely, they can be used to export data from BigQuery to GCS.
 This is very useful especially because BigQuery limits exports to a single file only to tables smaller than 1GB.&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;bq extract project_id:dataset_name.table_name gs://my_data/extract/prefix/file_prefix_*.json
 &lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The previous command will result in multiple files exported into the &lt;em&gt;&amp;ldquo;my_data&amp;rdquo;&lt;/em&gt; bucket within the prefix &lt;em&gt;&amp;ldquo;extract/prefix/&amp;quot;&lt;/em&gt; and all file names will be:&lt;/p&gt;
+&lt;p&gt;The previous command will result in multiple files exported into the &lt;em&gt;&amp;ldquo;my_data&amp;rdquo;&lt;/em&gt; bucket within the prefix &lt;em&gt;&amp;ldquo;extract/prefix/&amp;rdquo;&lt;/em&gt; and all file names will be:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;file_prefix_000000000000.json
 file_prefix_000000000001.json
 file_prefix_000000000002.json
@@ -1174,7 +1174,7 @@ For example, consider you have a collection of tables like:&lt;/p&gt;
 &lt;p&gt;The following query will return the count per day per country of events of type &lt;em&gt;&amp;ldquo;submit&amp;rdquo;&lt;/em&gt; in our dataset.&lt;/p&gt;
 &lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards.sql&#34;&gt;&lt;/script&gt;
 
-&lt;p&gt;You can also filter out matched tables using &lt;em&gt;&amp;quot;_table_suffix&amp;rdquo;&lt;/em&gt; in the where clause.
+&lt;p&gt;You can also filter out matched tables using &lt;em&gt;&amp;quot;_table_suffix&amp;quot;&lt;/em&gt; in the where clause.
 For example, if you are only interested in Germany, France, and Japan just run the following:&lt;/p&gt;
 &lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards_filtered.sql&#34;&gt;&lt;/script&gt;
 

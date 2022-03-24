@@ -111,7 +111,7 @@ Do you want to try other locations and test the differences yourself? You can us
 &lt;figure id=&#34;figure-huq-gismaphttpgismaphuqio&#34;&gt;
 
 
-  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34; target=&amp;#34;_blank&amp;#34; rel=&amp;#34;noopener&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
 
 
   &lt;img src=&#34;./huq_gismap_london_m25.jpeg&#34; alt=&#34;&#34;  &gt;
@@ -121,7 +121,7 @@ Do you want to try other locations and test the differences yourself? You can us
   
   
   &lt;figcaption&gt;
-    &lt;a href=&#34;http://gismap.huq.io/&#34;&gt;Huq GisMap&lt;/a&gt;
+    &lt;a href=&#34;http://gismap.huq.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Huq GisMap&lt;/a&gt;
   &lt;/figcaption&gt;
 
 
