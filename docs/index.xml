@@ -5,12 +5,92 @@
     <link>https://alepuccetti.github.io/</link>
       <atom:link href="https://alepuccetti.github.io/index.xml" rel="self" type="application/rss+xml" />
     <description>Alessandro Puccetti</description>
-    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Tue, 15 Jun 2021 00:00:00 +0000</lastBuildDate>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><lastBuildDate>Thu, 24 Mar 2022 00:00:00 +0000</lastBuildDate>
     <image>
       <url>https://alepuccetti.github.io/images/icon_hu506a0a16710220c3fddbb4e47b0663c6_32981_512x512_fill_lanczos_center_3.png</url>
       <title>Alessandro Puccetti</title>
       <link>https://alepuccetti.github.io/</link>
     </image>
+    
+    <item>
+      <title>Saving Bank with Cloud Workflows</title>
+      <link>https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/</link>
+      <pubDate>Thu, 24 Mar 2022 00:00:00 +0000</pubDate>
+      <guid>https://alepuccetti.github.io/post/saving-bank-with-cloud-workflows/</guid>
+      <description>&lt;p&gt;“Workflows is a fully-managed orchestration platform that executes services in an order that you define”.&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-workflow&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./workflow_wood.jpeg&#34; data-caption=&#34;Workflow&#34;&gt;
+
+
+  &lt;img src=&#34;./workflow_wood.jpeg&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption&gt;
+    Workflow
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;p&gt;In this blogpost, I will show you how I was able to increase performance, reduce cost, and improve code quality by migrating our ETL orchestration from Cloud Composer to Cloud workflows.&lt;/p&gt;
+&lt;h2 id=&#34;the-journey&#34;&gt;The Journey&lt;/h2&gt;
+&lt;p&gt;I am a die-hard fan of managed and serverless services.
+That’s because they allow me to spend more time on developing interesting projects instead of maintaining infrastructure (boring!).&lt;/p&gt;
+&lt;p&gt;Few years ago, at Huq Industries, we were redesigning our infrastructure by using BigQuery and Dataflow for our analytics and batch processing.
+During this process, we also needed to strengthen the orchestration and scheduling of our ETLs and data delivery processes.
+After evaluating different solutions, we decided to implement our orchestration with Cloud Composer (fully managed Apache Airflow solution from Google Cloud).
+I knew from the beginning that Airflow would have been an overkill for our needs.
+In particular because we don’t process data locally on the Airflow cluster but only via external services like Dataflow and BigQuery.
+However, I wanted to have the peace of mind of a fully-managed solution and an easy-to-use system.&lt;/p&gt;
+&lt;p&gt;Although Cloud Composer has been great for day-to-day operation, it also caused some pain along the way, especially when I needed to re-run data pipelines spanning across a few years (see my previous blog post regarding Airflow short-living tasks).
+Lastly, having a cluster always up and running when you use it only a few hours a day is quite the waste of resources, but it was necessary for the business operations.&lt;/p&gt;
+&lt;h2 id=&#34;the-dawn-of-serverless-orchestration&#34;&gt;The Dawn of Serverless Orchestration&lt;/h2&gt;
+&lt;p&gt;When Google announced Cloud Workflows, I was very excited because I saw from the start that it would have been perfect for us.
+So, I decided to take Cloud Workflows out for a spin.&lt;/p&gt;
+&lt;p&gt;I started migrating the data pipelines and data export, and, to my pleasant surprise, the migration was incredibly fast and the final result was a much &lt;strong&gt;better code&lt;/strong&gt; base.
+One could  describe it as “directly to the point”.
+This new implementation drastically improved code readability, maintainability, and reusability.
+The second benefit was the ludicrous increase in end-to-end performance.
+In fact, before Cloud Workflows, a daily task needed about 30 minutes to complete, now it needs only 4 minutes (~8X faster).&lt;/p&gt;
+&lt;p&gt;This speed improvement is even greater when running full history exports, while before it took almost a month, now it takes less than a working day (&lt;strong&gt;~40X&lt;/strong&gt;).
+I want to highlight that I did not do any optimization to the external ETL jobs, so the performance improvements can all be attributed to Cloud Workflows.&lt;/p&gt;
+&lt;p&gt;The main reason for this incredible improvement is that the external tasks are quick compared to the scheduling and instantiating time of Airflow tasks.
+Cloud Workflows &lt;strong&gt;remove completely this non-processing time overhead&lt;/strong&gt;, so now the pipelines only last the time needed by the external service to complete.
+A little drawback is that Cloud Workflows does not provide scheduling as a native feature like Airflow. On the other hand, it is incredibly simple to schedule your Workflows using Cloud Scheduler.&lt;/p&gt;
+&lt;p&gt;The last, but definitely not least, advantage is the cost saving.
+To be able to meet the clients&amp;rsquo; needs, we had to keep the Airflow cluster running 24/7 (even if tasks had about 3 hours of runtime per day) costing about 900$/month.
+With Cloud workflows, per step pricing model you just pay for how many “actions” you execute.
+For this reason, the &lt;strong&gt;cost dropped by several orders of magnitude&lt;/strong&gt;. Running the daily tasks with Cloud workflows costs us 0.05$ per day (1.5$/month) which is a cost reduction of &lt;strong&gt;600X&lt;/strong&gt;.
+This makes the new system almost running for free.
+The cost saving is staggering even for the full history re-running example, which boils down to just 70$.&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;In conclusion, Cloud Workflows is the perfect match. It allows you to create simple and clear orchestration logic with amazing performance improvement and cost reduction.
+At the moment of writing, Cloud Workflows is still a fairly new product in active development but it’s improving at a very high pace.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Slots to the (Wallet) Rescue</title>
@@ -860,7 +940,7 @@ Select the dataset you want to create your table in and click create table.
 In the table creation menu, select as source &amp;ldquo;Google Cloud Storage&amp;rdquo;, CSV as format, and add the prefix of the data that you want to be the sources of the table (remember that you can use wildcard to say to BigQuery to select all the files within the prefix).
 Choose your table name (in this example we will use &amp;ldquo;s3_raw_logs_external&amp;rdquo;) and because we do not want to actually load the data, we need to select &amp;ldquo;External table&amp;rdquo; in &amp;ldquo;Table type&amp;rdquo;.
 In the schema section add a single column called &amp;ldquo;text&amp;rdquo; of type STRING.
-Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to be &amp;ldquo;Custom&amp;rdquo; and insert s character that should never be present (e.g. &amp;ldquo;§&amp;quot;). You can leave the other options with their default values and click &amp;ldquo;create&amp;rdquo;.&lt;/p&gt;
+Click on &amp;ldquo;Advanced options&amp;rdquo; and set the field delimiter to be &amp;ldquo;Custom&amp;rdquo; and insert s character that should never be present (e.g. &amp;ldquo;§&amp;rdquo;). You can leave the other options with their default values and click &amp;ldquo;create&amp;rdquo;.&lt;/p&gt;
 &lt;p&gt;Now we have a table into BigQuery where the source data is in Cloud Storage, this means that every query reading from this table will always acces all the data present in the bucket at that time. Note that this setup might start having degraded performances for very large logs datasets.&lt;/p&gt;
 &lt;h2 id=&#34;transform-raw-logs-into-tabular-format&#34;&gt;Transform raw logs into tabular format&lt;/h2&gt;
 &lt;p&gt;As we said above , AWS S3 log entries are not in JSON or CSV-like format but they use their own format, so we need to parse them ourselves . We can easily do this directly in BigQuery using a persistent UDF. I wrote a Javascript UDF to parse most of the log entry parts into an object. Note that we use &amp;ldquo;\&amp;rdquo; instead of &amp;ldquo;&amp;quot; because we need to escape when defining the function.&lt;/p&gt;
@@ -978,7 +1058,7 @@ Do you want to try other locations and test the differences yourself? You can us
 &lt;figure id=&#34;figure-huq-gismaphttpgismaphuqio&#34;&gt;
 
 
-  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./huq_gismap_london_m25.jpeg&#34; data-caption=&#34;&amp;lt;a href=&amp;#34;http://gismap.huq.io/&amp;#34; target=&amp;#34;_blank&amp;#34; rel=&amp;#34;noopener&amp;#34;&amp;gt;Huq GisMap&amp;lt;/a&amp;gt;&#34;&gt;
 
 
   &lt;img src=&#34;./huq_gismap_london_m25.jpeg&#34; alt=&#34;&#34;  &gt;
@@ -988,7 +1068,7 @@ Do you want to try other locations and test the differences yourself? You can us
   
   
   &lt;figcaption&gt;
-    &lt;a href=&#34;http://gismap.huq.io/&#34;&gt;Huq GisMap&lt;/a&gt;
+    &lt;a href=&#34;http://gismap.huq.io/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Huq GisMap&lt;/a&gt;
   &lt;/figcaption&gt;
 
 
@@ -1134,7 +1214,7 @@ It is free, it does not need to change any of your queries and it will make them
       <link>https://alepuccetti.github.io/post/bigquery-wildcards/</link>
       <pubDate>Mon, 06 Jan 2020 00:00:00 +0000</pubDate>
       <guid>https://alepuccetti.github.io/post/bigquery-wildcards/</guid>
-      <description>&lt;p&gt;BigQuery supports the &amp;ldquo;*&lt;em&gt;&amp;quot;&lt;/em&gt; wildcard to reference multiple tables or files.
+      <description>&lt;p&gt;BigQuery supports the &amp;ldquo;*&lt;em&gt;&amp;rdquo;&lt;/em&gt; wildcard to reference multiple tables or files.
 You can leverage this feature to load, extract, and query data across multiple sources, destinations, and tables.
 Let&amp;rsquo;s see what you can do with wildcards with some examples.&lt;/p&gt;
 &lt;p&gt;The first thing is definitely loading the data into BigQuery.
@@ -1152,7 +1232,7 @@ Namely, they can be used to export data from BigQuery to GCS.
 This is very useful especially because BigQuery limits exports to a single file only to tables smaller than 1GB.&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;bq extract project_id:dataset_name.table_name gs://my_data/extract/prefix/file_prefix_*.json
 &lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;The previous command will result in multiple files exported into the &lt;em&gt;&amp;ldquo;my_data&amp;rdquo;&lt;/em&gt; bucket within the prefix &lt;em&gt;&amp;ldquo;extract/prefix/&amp;quot;&lt;/em&gt; and all file names will be:&lt;/p&gt;
+&lt;p&gt;The previous command will result in multiple files exported into the &lt;em&gt;&amp;ldquo;my_data&amp;rdquo;&lt;/em&gt; bucket within the prefix &lt;em&gt;&amp;ldquo;extract/prefix/&amp;rdquo;&lt;/em&gt; and all file names will be:&lt;/p&gt;
 &lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;file_prefix_000000000000.json
 file_prefix_000000000001.json
 file_prefix_000000000002.json
@@ -1174,7 +1254,7 @@ For example, consider you have a collection of tables like:&lt;/p&gt;
 &lt;p&gt;The following query will return the count per day per country of events of type &lt;em&gt;&amp;ldquo;submit&amp;rdquo;&lt;/em&gt; in our dataset.&lt;/p&gt;
 &lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards.sql&#34;&gt;&lt;/script&gt;
 
-&lt;p&gt;You can also filter out matched tables using &lt;em&gt;&amp;quot;_table_suffix&amp;rdquo;&lt;/em&gt; in the where clause.
+&lt;p&gt;You can also filter out matched tables using &lt;em&gt;&amp;quot;_table_suffix&amp;quot;&lt;/em&gt; in the where clause.
 For example, if you are only interested in Germany, France, and Japan just run the following:&lt;/p&gt;
 &lt;script type=&#34;application/javascript&#34; src=&#34;https://gist.github.com/alepuccetti/127ea15abe46a2ffbb7e727714c6b5da.js?file=table_wildcards_filtered.sql&#34;&gt;&lt;/script&gt;
 
@@ -1543,15 +1623,15 @@ $$&lt;/p&gt;
 {{% fragment %}} Three {{% /fragment %}}
 &lt;/code&gt;&lt;/pre&gt;
 &lt;p&gt;Press &lt;code&gt;Space&lt;/code&gt; to play!&lt;/p&gt;
-&lt;p&gt;&lt;span class=&#34;fragment &#34; &gt;
-One
+&lt;span class=&#34;fragment &#34; &gt;
+   One 
 &lt;/span&gt;
 &lt;span class=&#34;fragment &#34; &gt;
-&lt;strong&gt;Two&lt;/strong&gt;
+   **Two** 
 &lt;/span&gt;
 &lt;span class=&#34;fragment &#34; &gt;
-Three
-&lt;/span&gt;&lt;/p&gt;
+   Three 
+&lt;/span&gt;
 &lt;hr&gt;
 &lt;p&gt;A fragment can accept two optional parameters:&lt;/p&gt;
 &lt;ul&gt;
